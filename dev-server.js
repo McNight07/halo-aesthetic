@@ -24,11 +24,33 @@ function send(res, status, body, headers = {}) {
   res.end(body);
 }
 
+function resolveApiModule(apiPath) {
+  const exactPath = path.join(ROOT, 'api', `${apiPath}.js`);
+  if (fs.existsSync(exactPath)) {
+    return { modulePath: exactPath, query: {} };
+  }
+
+  // Support Vercel-style catch-all routes: api/<dir>/[...action].js
+  const segments = apiPath.split('/');
+  for (let i = segments.length - 1; i > 0; i--) {
+    const dir = segments.slice(0, i).join('/');
+    const rest = segments.slice(i);
+    const catchAllPath = path.join(ROOT, 'api', dir, '[...action].js');
+    if (fs.existsSync(catchAllPath)) {
+      return { modulePath: catchAllPath, query: { action: rest } };
+    }
+  }
+
+  return null;
+}
+
 async function handleApi(req, res, apiPath) {
-  const modulePath = path.join(ROOT, 'api', `${apiPath}.js`);
-  if (!fs.existsSync(modulePath)) {
+  const resolved = resolveApiModule(apiPath);
+  if (!resolved) {
     return send(res, 404, JSON.stringify({ error: 'Not found' }), { 'Content-Type': 'application/json' });
   }
+  const { modulePath, query } = resolved;
+  req.query = query;
 
   delete require.cache[require.resolve(modulePath)];
   const handler = require(modulePath);
