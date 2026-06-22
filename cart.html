@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Halo Aesthetic is a private, by-appointment waxing, threading, and facial studio in Denver, CO, run by Sofia Zamani.">
-<title>Contact — Halo Aesthetic</title>
+<title>Your Cart — Halo Aesthetic</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
@@ -20,60 +20,37 @@
       <li><a href="services.html">Services</a></li>
       <li><a href="pricing.html">Pricing</a></li>
       <li><a href="about.html">About</a></li>
-      <li><a href="contact.html" class="active">Contact</a></li>
-      <li><a href="cart.html" class="cart-link" id="cart-link" aria-label="View cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align: middle;"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg> <span class="cart-badge" id="cart-badge">0</span></a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html" class="cart-link active" id="cart-link" aria-label="View cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align: middle;"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg> <span class="cart-badge" id="cart-badge">0</span></a></li>
       <li><a href="booking.html" class="btn">Book Now</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
   </nav>
 </header>
 
-<section class="hero" style="min-height: 36vh;">
+<section class="hero" style="min-height: 30vh;">
   <div>
-    <div class="hero-eyebrow">Get In Touch</div>
-    <h1>Contact Us</h1>
-    <p>Questions about a treatment or want to plan a visit? We'd love to hear from you.</p>
+    <div class="hero-eyebrow">Your Selections</div>
+    <h1>Your Cart</h1>
+    <p>Review the services you've added, then carry them into a booking request.</p>
   </div>
 </section>
 
 <section>
-  <div class="container split">
-    <div class="contact-info">
-      <div class="item">
-        <h4>Visit the Studio</h4>
-        <p>Private, by-appointment studio in Denver, CO 80203. Exact address is shared once your booking is confirmed.</p>
-      </div>
-      <div class="item">
-        <h4>Call Us</h4>
-        <p>(303) 727-0746</p>
-      </div>
-      <div class="item">
-        <h4>Email Us</h4>
-        <p>sofiazamani7@gmail.com</p>
-      </div>
-      <div class="item">
-        <h4>Hours</h4>
-        <p>Mon–Fri: 9am – 8pm<br>Sat–Sun: 10am – 6pm</p>
-      </div>
+  <div class="container" style="max-width: 720px;">
+    <div id="cart-empty" style="display: none; text-align: center;">
+      <p style="color: var(--text-muted); margin-bottom: 24px;">Your cart is empty. Browse the menu and add a service to get started.</p>
+      <a href="services.html" class="btn btn-solid">Browse Services</a>
     </div>
 
-    <div class="form-panel">
-      <form id="contact-form">
-        <div class="form-group">
-          <label for="c-name">Full Name</label>
-          <input type="text" id="c-name" name="name" required>
-        </div>
-        <div class="form-group">
-          <label for="c-email">Email</label>
-          <input type="email" id="c-email" name="email" required>
-        </div>
-        <div class="form-group">
-          <label for="c-message">Message</label>
-          <textarea id="c-message" name="message" rows="5" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-solid">Send Message</button>
-        <div id="contact-status"></div>
-      </form>
+    <div id="cart-items"></div>
+
+    <div id="cart-summary" class="cart-summary">
+      <div>
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Estimated Total</div>
+        <div class="price" id="cart-total" style="font-size: 1.6rem;"></div>
+      </div>
+      <a href="booking.html?fromCart=1" class="btn btn-solid">Continue to Booking</a>
     </div>
   </div>
 </section>
@@ -108,5 +85,8 @@
 </footer>
 
 <script src="js/script.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", renderCartPage);
+</script>
 </body>
 </html>

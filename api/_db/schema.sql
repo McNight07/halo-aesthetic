@@ -65,3 +65,31 @@ insert into services (category, name, duration, price_cents, display_order) valu
   ('Bundle', 'Smooth Legs & Bikini', 'per visit', 8000, 21),
   ('Bundle', 'Full Face Refresh', 'per visit', 19000, 22)
 on conflict (name) do nothing;
+
+alter table services add column if not exists description text;
+
+update services set description = case name
+  when 'Back Wax' then 'Smooth, long-lasting hair removal for the full back.'
+  when 'Bikini Line Wax' then 'Clean, precise shaping along the bikini line.'
+  when 'Full Arm Wax' then 'Hair removal for the entire arm, shoulder to wrist.'
+  when 'Full Body Wax' then 'Complete head-to-toe waxing in one extended session.'
+  when 'Full Legs Wax' then 'Smooth, hair-free legs from thigh to ankle.'
+  when 'Half Arms Wax' then 'Hair removal from elbow to wrist.'
+  when 'Half Legs Wax' then 'Hair removal from knee to ankle.'
+  when 'Stomach Wax' then 'Gentle hair removal for the abdomen area.'
+  when 'Under Arm Wax' then 'Quick, thorough underarm hair removal.'
+  when 'Underarms Wax' then 'Thorough underarm hair removal with extra care for sensitive skin.'
+  when 'Beard Line Threading' then 'Clean, sharp shaping along the beard line.'
+  when 'Brow Threading' then 'Precision eyebrow shaping using traditional threading technique.'
+  when 'Chin Threading' then 'Quick, precise hair removal for the chin area.'
+  when 'Forehead Threading' then 'Clean hairline shaping along the forehead.'
+  when 'Full Face Threading' then 'Complete facial hair removal for a smooth, polished look.'
+  when 'Sideburns Threading' then 'Precise shaping and tidying of the sideburn area.'
+  when 'Upper Lip Threading' then 'Fast, precise hair removal for the upper lip.'
+  when 'Hydrating Glow Facial' then 'A nourishing facial treatment that leaves skin hydrated and glowing.'
+  when 'Henna Design' then 'Custom henna application for a beautiful temporary design.'
+  when 'Brow & Lip Combo' then 'Brow threading and upper lip threading together in one visit.'
+  when 'Smooth Legs & Bikini' then 'Full legs wax and bikini line wax together in one visit.'
+  when 'Full Face Refresh' then 'Full face threading paired with a hydrating glow facial.'
+end
+where description is null;

@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   try {
     const sql = getSql();
     const rows = await sql`
-      select id, category, name, duration, price_cents, display_order
+      select id, category, name, duration, price_cents, display_order, description
       from services
       order by display_order asc
     `;

@@ -29,6 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
           status.textContent = "Thank you — your request has been received. We'll confirm by email shortly.";
           status.className = "success";
           bookingForm.reset();
+          localStorage.removeItem(CART_KEY);
+          updateCartBadge();
+          const note = document.getElementById("cart-prefill-note");
+          if (note) note.remove();
         } else {
           status.textContent = result.error || "Something went wrong. Please try again or call us directly.";
           status.className = "error";
@@ -79,33 +83,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  loadServicesIntoSelect();
+  loadServicesIntoSelect().then(prefillBookingFromCart);
   loadServicesIntoPage();
+  setupServiceModal();
+  updateCartBadge();
 });
 
 const FALLBACK_SERVICES = [
-  { category: "Waxing", name: "Back Wax", price_cents: 5500 },
-  { category: "Waxing", name: "Bikini Line Wax", price_cents: 4000 },
-  { category: "Waxing", name: "Full Arm Wax", price_cents: 4500 },
-  { category: "Waxing", name: "Full Body Wax", price_cents: 15000 },
-  { category: "Waxing", name: "Full Legs Wax", price_cents: 5000 },
-  { category: "Waxing", name: "Half Arms Wax", price_cents: 3000 },
-  { category: "Waxing", name: "Half Legs Wax", price_cents: 3500 },
-  { category: "Waxing", name: "Stomach Wax", price_cents: 3000 },
-  { category: "Waxing", name: "Under Arm Wax", price_cents: 2000 },
-  { category: "Waxing", name: "Underarms Wax", price_cents: 2000 },
-  { category: "Threading", name: "Beard Line Threading", price_cents: 3000 },
-  { category: "Threading", name: "Brow Threading", price_cents: 3500 },
-  { category: "Threading", name: "Chin Threading", price_cents: 1500 },
-  { category: "Threading", name: "Forehead Threading", price_cents: 2000 },
-  { category: "Threading", name: "Full Face Threading", price_cents: 5500 },
-  { category: "Threading", name: "Sideburns Threading", price_cents: 3000 },
-  { category: "Threading", name: "Upper Lip Threading", price_cents: 1000 },
-  { category: "Facial & Other", name: "Hydrating Glow Facial", price_cents: 15000 },
-  { category: "Facial & Other", name: "Henna Design", price_cents: 2500 },
-  { category: "Bundle", name: "Brow & Lip Combo", price_cents: 4000 },
-  { category: "Bundle", name: "Smooth Legs & Bikini", price_cents: 8000 },
-  { category: "Bundle", name: "Full Face Refresh", price_cents: 19000 },
+  { category: "Waxing", name: "Back Wax", duration: "1 hr", price_cents: 5500, description: "Smooth, long-lasting hair removal for the full back." },
+  { category: "Waxing", name: "Bikini Line Wax", duration: "30 mins", price_cents: 4000, description: "Clean, precise shaping along the bikini line." },
+  { category: "Waxing", name: "Full Arm Wax", duration: "30 mins", price_cents: 4500, description: "Hair removal for the entire arm, shoulder to wrist." },
+  { category: "Waxing", name: "Full Body Wax", duration: "2 hrs 30 mins", price_cents: 15000, description: "Complete head-to-toe waxing in one extended session." },
+  { category: "Waxing", name: "Full Legs Wax", duration: "1 hr 30 mins", price_cents: 5000, description: "Smooth, hair-free legs from thigh to ankle." },
+  { category: "Waxing", name: "Half Arms Wax", duration: "1 hr 30 mins", price_cents: 3000, description: "Hair removal from elbow to wrist." },
+  { category: "Waxing", name: "Half Legs Wax", duration: "1 hr 30 mins", price_cents: 3500, description: "Hair removal from knee to ankle." },
+  { category: "Waxing", name: "Stomach Wax", duration: "1 hr 30 mins", price_cents: 3000, description: "Gentle hair removal for the abdomen area." },
+  { category: "Waxing", name: "Under Arm Wax", duration: "30 mins", price_cents: 2000, description: "Quick, thorough underarm hair removal." },
+  { category: "Waxing", name: "Underarms Wax", duration: "1 hr 30 mins", price_cents: 2000, description: "Thorough underarm hair removal with extra care for sensitive skin." },
+  { category: "Threading", name: "Beard Line Threading", duration: "30 mins", price_cents: 3000, description: "Clean, sharp shaping along the beard line." },
+  { category: "Threading", name: "Brow Threading", duration: "15 mins", price_cents: 3500, description: "Precision eyebrow shaping using traditional threading technique." },
+  { category: "Threading", name: "Chin Threading", duration: "10 mins", price_cents: 1500, description: "Quick, precise hair removal for the chin area." },
+  { category: "Threading", name: "Forehead Threading", duration: "20 mins", price_cents: 2000, description: "Clean hairline shaping along the forehead." },
+  { category: "Threading", name: "Full Face Threading", duration: "30 mins", price_cents: 5500, description: "Complete facial hair removal for a smooth, polished look." },
+  { category: "Threading", name: "Sideburns Threading", duration: "20 mins", price_cents: 3000, description: "Precise shaping and tidying of the sideburn area." },
+  { category: "Threading", name: "Upper Lip Threading", duration: "15 mins", price_cents: 1000, description: "Fast, precise hair removal for the upper lip." },
+  { category: "Facial & Other", name: "Hydrating Glow Facial", duration: "30 mins", price_cents: 15000, description: "A nourishing facial treatment that leaves skin hydrated and glowing." },
+  { category: "Facial & Other", name: "Henna Design", duration: "30 mins", price_cents: 2500, description: "Custom henna application for a beautiful temporary design." },
+  { category: "Bundle", name: "Brow & Lip Combo", duration: "per visit", price_cents: 4000, description: "Brow threading and upper lip threading together in one visit." },
+  { category: "Bundle", name: "Smooth Legs & Bikini", duration: "per visit", price_cents: 8000, description: "Full legs wax and bikini line wax together in one visit." },
+  { category: "Bundle", name: "Full Face Refresh", duration: "per visit", price_cents: 19000, description: "Full face threading paired with a hydrating glow facial." },
 ];
 
 function groupByCategory(services) {
@@ -157,38 +163,229 @@ const CATEGORY_CONTAINER_IDS = {
   "Facial & Other": "facial-rows",
 };
 
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str == null ? "" : String(str);
+  return div.innerHTML;
+}
+
 function renderServiceRows(container, items) {
   container.innerHTML = items
-    .map((item) => {
+    .map((item, index) => {
       const price = (item.price_cents / 100).toFixed(0);
+      const rowId = `${container.id}-${index}`;
       return `
-        <div class="service-row">
-          <div><h3>${item.name}</h3><p>${item.duration}</p></div>
+        <div class="service-row clickable" data-row-id="${rowId}">
+          <div><h3>${escapeHtml(item.name)}</h3><p>${escapeHtml(item.duration)}</p></div>
           <div class="price">$${price}</div>
         </div>
       `;
     })
     .join("");
+
+  container.querySelectorAll(".service-row.clickable").forEach((row, index) => {
+    row.addEventListener("click", () => openServiceModal(items[index]));
+  });
 }
 
 async function loadServicesIntoPage() {
   const hasAnyContainer = Object.values(CATEGORY_CONTAINER_IDS).some((id) => document.getElementById(id));
   if (!hasAnyContainer) return;
 
+  let services;
   try {
     const response = await fetch("/api/services");
     if (!response.ok) throw new Error("services fetch failed");
-    const { services } = await response.json();
-    if (!Array.isArray(services) || services.length === 0) throw new Error("empty services list");
-
-    const groups = groupByCategory(services);
-    Object.entries(CATEGORY_CONTAINER_IDS).forEach(([category, containerId]) => {
-      const container = document.getElementById(containerId);
-      if (container && groups[category]) {
-        renderServiceRows(container, groups[category]);
-      }
-    });
+    const data = await response.json();
+    if (!Array.isArray(data.services) || data.services.length === 0) throw new Error("empty services list");
+    services = data.services;
   } catch (err) {
-    // Leave the hardcoded fallback markup already in the page untouched.
+    services = FALLBACK_SERVICES;
   }
+
+  const groups = groupByCategory(services);
+  Object.entries(CATEGORY_CONTAINER_IDS).forEach(([category, containerId]) => {
+    const container = document.getElementById(containerId);
+    if (container && groups[category]) {
+      renderServiceRows(container, groups[category]);
+    }
+  });
+}
+
+/* ---------- Service detail modal ---------- */
+
+function openServiceModal(service) {
+  const modal = document.getElementById("service-modal");
+  if (!modal) return;
+
+  const price = (service.price_cents / 100).toFixed(0);
+  document.getElementById("modal-name").textContent = service.name;
+  document.getElementById("modal-duration").textContent = service.duration || "";
+  document.getElementById("modal-price").textContent = `$${price}`;
+  document.getElementById("modal-description").textContent = service.description || "";
+
+  const addBtn = document.getElementById("modal-add-to-cart");
+  addBtn.onclick = () => {
+    addToCart(service);
+    closeServiceModal();
+    showToast(`${service.name} added to cart`);
+  };
+
+  modal.classList.add("open");
+}
+
+function closeServiceModal() {
+  const modal = document.getElementById("service-modal");
+  if (modal) modal.classList.remove("open");
+}
+
+function setupServiceModal() {
+  const modal = document.getElementById("service-modal");
+  if (!modal) return;
+
+  document.getElementById("modal-close").addEventListener("click", closeServiceModal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeServiceModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeServiceModal();
+  });
+}
+
+/* ---------- Cart (localStorage) ---------- */
+
+const CART_KEY = "halo_cart";
+
+function getCart() {
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    const cart = raw ? JSON.parse(raw) : [];
+    return Array.isArray(cart) ? cart : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function saveCart(cart) {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  updateCartBadge();
+}
+
+function addToCart(service) {
+  const cart = getCart();
+  const existing = cart.find((item) => item.name === service.name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    cart.push({
+      id: service.id || null,
+      name: service.name,
+      price_cents: service.price_cents,
+      qty: 1,
+    });
+  }
+  saveCart(cart);
+}
+
+function removeFromCart(name) {
+  saveCart(getCart().filter((item) => item.name !== name));
+}
+
+function updateCartBadge() {
+  const badge = document.getElementById("cart-badge");
+  if (!badge) return;
+  const count = getCart().reduce((sum, item) => sum + item.qty, 0);
+  badge.textContent = count;
+  badge.classList.toggle("visible", count > 0);
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add("visible");
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => toast.classList.remove("visible"), 2400);
+}
+
+function prefillBookingFromCart() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("fromCart") !== "1") return;
+
+  const cart = getCart();
+  if (cart.length === 0) return;
+
+  const select = document.getElementById("b-service");
+  const notes = document.getElementById("b-notes");
+  if (!select || !notes) return;
+
+  const tryMatchOption = (name) => {
+    return Array.from(select.options).find((opt) => opt.textContent.startsWith(name));
+  };
+
+  const firstMatch = tryMatchOption(cart[0].name);
+  if (firstMatch) {
+    select.value = firstMatch.value;
+  }
+
+  const summaryLines = cart.map((item) => `${item.name} (x${item.qty})`).join(", ");
+  notes.value = `Requested from cart: ${summaryLines}` + (notes.value ? `\n${notes.value}` : "");
+
+  const formPanel = document.querySelector(".form-panel");
+  if (formPanel && !document.getElementById("cart-prefill-note")) {
+    const note = document.createElement("div");
+    note.id = "cart-prefill-note";
+    note.className = "cart-note";
+    note.textContent = `Carried over from your cart: ${summaryLines}. We've added these to your notes below — feel free to adjust the Treatment field if needed.`;
+    formPanel.prepend(note);
+  }
+}
+
+/* ---------- Cart page ---------- */
+
+function renderCartPage() {
+  const itemsContainer = document.getElementById("cart-items");
+  const emptyState = document.getElementById("cart-empty");
+  const summary = document.getElementById("cart-summary");
+  if (!itemsContainer || !emptyState || !summary) return;
+
+  const cart = getCart();
+
+  if (cart.length === 0) {
+    itemsContainer.innerHTML = "";
+    emptyState.style.display = "block";
+    summary.classList.remove("visible");
+    return;
+  }
+
+  emptyState.style.display = "none";
+  summary.classList.add("visible");
+
+  itemsContainer.innerHTML = cart
+    .map((item) => {
+      const lineTotal = ((item.price_cents * item.qty) / 100).toFixed(0);
+      return `
+        <div class="cart-row">
+          <div>
+            <h3>${escapeHtml(item.name)}</h3>
+            <div class="cart-row-meta">Qty: ${item.qty}</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 18px;">
+            <div class="price">$${lineTotal}</div>
+            <button class="cart-row-remove" data-name="${escapeHtml(item.name)}">Remove</button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  itemsContainer.querySelectorAll(".cart-row-remove").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      removeFromCart(btn.dataset.name);
+      renderCartPage();
+    });
+  });
+
+  const totalCents = cart.reduce((sum, item) => sum + item.price_cents * item.qty, 0);
+  document.getElementById("cart-total").textContent = `$${(totalCents / 100).toFixed(0)}`;
 }
