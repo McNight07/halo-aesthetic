@@ -96,6 +96,7 @@ function setupAddToCartButtons() {
       const name = btn.dataset.name;
       const priceCents = parseInt(btn.dataset.priceCents, 10);
       addToCart({ name, price_cents: priceCents });
+      flashAddedButton(btn);
       showToast(`${name} added to cart`);
     });
   });
@@ -239,8 +240,9 @@ function openServiceModal(service) {
   const addBtn = document.getElementById("modal-add-to-cart");
   addBtn.onclick = () => {
     addToCart(service);
-    closeServiceModal();
+    flashAddedButton(addBtn);
     showToast(`${service.name} added to cart`);
+    setTimeout(closeServiceModal, 500);
   };
 
   modal.classList.add("open");
@@ -297,10 +299,41 @@ function addToCart(service) {
     });
   }
   saveCart(cart);
+  animateCartIcon();
 }
 
 function removeFromCart(name) {
   saveCart(getCart().filter((item) => item.name !== name));
+}
+
+function animateCartIcon() {
+  const cartLink = document.getElementById("cart-link");
+  const badge = document.getElementById("cart-badge");
+  if (cartLink) {
+    cartLink.classList.remove("bump");
+    void cartLink.offsetWidth;
+    cartLink.classList.add("bump");
+    setTimeout(() => cartLink.classList.remove("bump"), 600);
+  }
+  if (badge) {
+    badge.classList.remove("pop");
+    void badge.offsetWidth;
+    badge.classList.add("pop");
+    setTimeout(() => badge.classList.remove("pop"), 500);
+  }
+}
+
+function flashAddedButton(btn) {
+  if (!btn) return;
+  const originalText = btn.textContent;
+  btn.textContent = "Added ✓";
+  btn.classList.add("added");
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = originalText;
+    btn.classList.remove("added");
+    btn.disabled = false;
+  }, 1200);
 }
 
 function updateCartBadge() {
