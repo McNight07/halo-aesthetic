@@ -1,0 +1,13 @@
+{
+  "name": "halo-aesthetic",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node dev-server.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "stripe": "^17.4.0",
+    "dotenv": "^16.4.5"
+  }
+}

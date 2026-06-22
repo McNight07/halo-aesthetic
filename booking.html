@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Halo Aesthetic is a private, by-appointment waxing, threading, and facial studio in Denver, CO, run by Sofia Zamani.">
+<title>Book Now — Halo Aesthetic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <a href="index.html" class="logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="booking.html" class="btn active">Book Now</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
+  </nav>
+</header>
+
+<section class="hero" style="min-height: 36vh;">
+  <div>
+    <div class="hero-eyebrow">Reserve Your Time</div>
+    <h1>Book an Appointment</h1>
+    <p>Tell us what you'd like and when — we'll confirm your appointment at the studio by email or phone.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container" style="max-width: 760px;">
+    <div class="form-panel">
+      <form id="booking-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="b-name">Full Name</label>
+            <input type="text" id="b-name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="b-phone">Phone</label>
+            <input type="tel" id="b-phone" name="phone" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="b-email">Email</label>
+          <input type="email" id="b-email" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="b-service">Treatment</label>
+          <select id="b-service" name="service" required>
+            <option value="">Select a treatment</option>
+            <optgroup label="Waxing">
+              <option>Back Wax — $55</option>
+              <option>Bikini Line Wax — $40</option>
+              <option>Full Arm Wax — $45</option>
+              <option>Full Body Wax — $150</option>
+              <option>Full Legs Wax — $50</option>
+              <option>Half Arms Wax — $30</option>
+              <option>Half Legs Wax — $35</option>
+              <option>Stomach Wax — $30</option>
+              <option>Under Arm Wax — $20</option>
+              <option>Underarms Wax — $20</option>
+            </optgroup>
+            <optgroup label="Threading">
+              <option>Beard Line Threading — $30</option>
+              <option>Brow Threading — $35</option>
+              <option>Chin Threading — $15</option>
+              <option>Forehead Threading — $20</option>
+              <option>Full Face Threading — $55</option>
+              <option>Sideburns Threading — $30</option>
+              <option>Upper Lip Threading — $10</option>
+            </optgroup>
+            <optgroup label="Facial & Other">
+              <option>Hydrating Glow Facial — $150</option>
+              <option>Henna Design — $25</option>
+            </optgroup>
+            <optgroup label="Bundles">
+              <option>Brow &amp; Lip Combo — $40</option>
+              <option>Smooth Legs &amp; Bikini — $80</option>
+              <option>Full Face Refresh — $190</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="b-date">Preferred Date</label>
+            <input type="date" id="b-date" name="date" required>
+          </div>
+          <div class="form-group">
+            <label for="b-time">Preferred Time</label>
+            <input type="time" id="b-time" name="time" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="b-notes">Notes (optional)</label>
+          <textarea id="b-notes" name="notes" rows="4" placeholder="Any preferences, allergies, or special requests"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-solid">Request Booking</button>
+        <div id="form-status"></div>
+        <p class="form-note">This sends a booking request only — no payment is taken here. To purchase a bundle or membership in advance, visit <a href="pricing.html" style="text-decoration: underline;">Pricing</a>. The studio address is shared once your appointment is confirmed.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>Halo Aesthetic</h4>
+        <p>Private, by-appointment waxing, threading, and facial studio in Denver, CO.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="booking.html">Book Now</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li>By appointment — Denver, CO 80203</li>
+          <li>(303) 727-0746</li>
+          <li>sofiazamani7@gmail.com</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Halo Aesthetic. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>

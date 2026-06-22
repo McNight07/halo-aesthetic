@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 60" width="200" height="38">
+  <g fill="none" stroke="#cfa15e" stroke-width="2.2" stroke-linecap="round">
+    <path d="M22 50 L22 14"/>
+    <path d="M22 34 C14 30 9 22 10 12 C18 14 23 20 22 28"/>
+    <path d="M22 34 C30 30 35 22 34 12 C26 14 21 20 22 28"/>
+    <path d="M22 44 C16 41 12 35 13 27 C19 29 23 34 22 40"/>
+    <path d="M22 44 C28 41 32 35 31 27 C25 29 21 34 22 40"/>
+  </g>
+  <text x="46" y="28" font-family="Playfair Display, Georgia, serif" font-weight="600" font-size="20" letter-spacing="2" fill="#f3efe7">HALO</text>
+  <text x="46" y="46" font-family="Inter, Helvetica, Arial, sans-serif" font-weight="500" font-size="12" letter-spacing="3" fill="#cfa15e">AESTHETIC</text>
+</svg>
