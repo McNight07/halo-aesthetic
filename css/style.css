@@ -992,3 +992,48 @@ footer {
   color: var(--text-muted);
   margin-bottom: 24px;
 }
+
+/* Admin dashboard */
+.admin-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 14px;
+}
+
+.admin-card .admin-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.admin-card h4 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.admin-card .admin-time {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.admin-card .admin-field {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.admin-card .admin-field strong {
+  color: var(--cream);
+  font-weight: 500;
+}
+
+.admin-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 20px 0;
+}
