@@ -19,9 +19,21 @@ module.exports = async (req, res) => {
 
   try {
     const sql = getSql();
+
+    let clientRows = await sql`select id from clients where email = ${body.email} and phone = ${body.phone}`;
+    let clientId;
+    if (clientRows.length > 0) {
+      clientId = clientRows[0].id;
+    } else {
+      const inserted = await sql`
+        insert into clients (name, email, phone) values (${body.name}, ${body.email}, ${body.phone}) returning id
+      `;
+      clientId = inserted[0].id;
+    }
+
     const rows = await sql`
-      insert into bookings (name, phone, email, service, preferred_date, preferred_time, notes)
-      values (${body.name}, ${body.phone}, ${body.email}, ${body.service}, ${body.date}, ${body.time}, ${body.notes || null})
+      insert into bookings (name, phone, email, service, preferred_date, preferred_time, notes, client_id)
+      values (${body.name}, ${body.phone}, ${body.email}, ${body.service}, ${body.date}, ${body.time}, ${body.notes || null}, ${clientId})
       returning id
     `;
     return res.status(201).json({ success: true, id: rows[0].id });

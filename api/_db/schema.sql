@@ -151,3 +151,57 @@ create table if not exists activity_log (
 );
 
 alter table bookings add column if not exists user_id integer references users(id);
+
+-- Admin dashboard: appointment status, client CRM, services CRUD flags, reviews, settings
+
+alter table bookings add column if not exists status text not null default 'pending';
+
+alter table services add column if not exists is_featured boolean not null default false;
+alter table services add column if not exists is_active boolean not null default true;
+
+create table if not exists clients (
+  id serial primary key,
+  name text not null,
+  email text,
+  phone text,
+  notes text,
+  loyalty_points integer not null default 0,
+  created_at timestamptz default now()
+);
+
+alter table bookings add column if not exists client_id integer references clients(id);
+
+create table if not exists reviews (
+  id serial primary key,
+  client_name text not null,
+  rating integer not null check (rating between 1 and 5),
+  comment text not null,
+  is_approved boolean not null default false,
+  is_featured boolean not null default false,
+  created_at timestamptz default now()
+);
+
+create table if not exists business_settings (
+  key text primary key,
+  value jsonb not null
+);
+
+insert into business_settings (key, value) values
+  ('business_hours', '{"mon_fri": "9am - 8pm", "sat_sun": "10am - 6pm"}'),
+  ('general', '{"phone": "(303) 727-0746", "email": "sofiazamani7@gmail.com", "address": "By appointment — Denver, CO 80203"}')
+on conflict (key) do nothing;
+
+-- Backfill: create a client row per distinct contact found in existing bookings,
+-- and link client_id on those bookings. Guarded so re-running this script is safe.
+insert into clients (name, email, phone)
+select distinct on (b.email, b.phone) b.name, b.email, b.phone
+from bookings b
+where b.client_id is null
+  and not exists (select 1 from clients c where c.email = b.email and c.phone = b.phone);
+
+update bookings b
+set client_id = c.id
+from clients c
+where b.client_id is null
+  and b.email = c.email
+  and b.phone = c.phone;

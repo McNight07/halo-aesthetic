@@ -9,57 +9,277 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
 </head>
-<body>
+<body class="admin-body">
 
-<header>
-  <nav class="navbar">
-    <a href="index.html" class="logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
-    <ul class="nav-links">
-      <li><a href="index.html">Back to Site</a></li>
-    </ul>
-  </nav>
-</header>
-
-<section class="hero" style="min-height: 24vh;">
-  <div>
-    <div class="hero-eyebrow">Private</div>
-    <h1>Admin Dashboard</h1>
+<div id="login-screen" class="admin-login-screen">
+  <div class="admin-login-card">
+    <img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img" style="margin: 0 auto 24px; display: block;">
+    <h1 style="font-size: 1.3rem; text-align: center; margin-bottom: 20px;">Admin Dashboard</h1>
+    <div class="form-group">
+      <label for="admin-password">Password</label>
+      <input type="password" id="admin-password" autocomplete="current-password">
+    </div>
+    <button class="btn btn-solid" id="admin-login-btn" style="width: 100%;">Log In</button>
+    <div id="login-status"></div>
   </div>
-</section>
+</div>
 
-<section>
-  <div class="container" style="max-width: 760px;">
-    <div id="login-panel" class="form-panel">
+<div id="admin-app" class="admin-app" style="display: none;">
+  <aside class="admin-sidebar">
+    <a href="index.html" class="logo admin-sidebar-logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
+    <nav class="admin-nav">
+      <button class="admin-nav-item active" data-section="dashboard">Dashboard</button>
+      <button class="admin-nav-item" data-section="appointments">Appointments</button>
+      <button class="admin-nav-item" data-section="clients">Clients</button>
+      <button class="admin-nav-item" data-section="services">Services</button>
+      <button class="admin-nav-item" data-section="revenue">Revenue</button>
+      <button class="admin-nav-item" data-section="reviews">Reviews</button>
+      <button class="admin-nav-item" data-section="settings">Settings</button>
+    </nav>
+    <div class="admin-sidebar-footer">
+      <a href="index.html" class="admin-sidebar-link">&larr; Back to Site</a>
+      <button class="admin-sidebar-link" id="admin-logout-btn">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+
+    <section id="section-dashboard" class="admin-section">
+      <h2 class="admin-section-title">Dashboard</h2>
+      <div class="admin-stat-grid">
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Total Appointments</div>
+          <div class="admin-stat-value" id="stat-total-appointments">—</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Today's Appointments</div>
+          <div class="admin-stat-value" id="stat-today-appointments">—</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Monthly Revenue</div>
+          <div class="admin-stat-value" id="stat-monthly-revenue">—</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">New Clients This Month</div>
+          <div class="admin-stat-value" id="stat-new-clients">—</div>
+        </div>
+      </div>
+
+      <div class="admin-grid-2">
+        <div class="admin-panel">
+          <h3 class="admin-panel-title">Upcoming Appointments</h3>
+          <div id="upcoming-list"></div>
+        </div>
+        <div class="admin-panel">
+          <h3 class="admin-panel-title">Most Booked Services</h3>
+          <div id="most-booked-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-appointments" class="admin-section" style="display: none;">
+      <div class="admin-section-header-row">
+        <h2 class="admin-section-title">Appointments</h2>
+        <button class="btn btn-solid" id="new-appointment-btn">+ New Appointment</button>
+      </div>
+
+      <div class="admin-filter-row">
+        <input type="text" id="appt-search" placeholder="Search name, email, or phone...">
+        <div class="admin-filter-pills" id="status-filter-pills">
+          <button class="admin-pill active" data-status="">All</button>
+          <button class="admin-pill" data-status="pending">Pending</button>
+          <button class="admin-pill" data-status="confirmed">Confirmed</button>
+          <button class="admin-pill" data-status="completed">Completed</button>
+          <button class="admin-pill" data-status="cancelled">Cancelled</button>
+        </div>
+      </div>
+
+      <div id="appointments-list"></div>
+    </section>
+
+    <section id="section-clients" class="admin-section" style="display: none;">
+      <h2 class="admin-section-title">Clients</h2>
+      <input type="text" id="client-search" placeholder="Search clients..." style="margin-bottom: 20px;">
+      <div class="admin-grid-2" style="grid-template-columns: 1fr 1.4fr; align-items: start;">
+        <div id="clients-list"></div>
+        <div id="client-detail-panel" class="admin-panel" style="display: none;"></div>
+      </div>
+    </section>
+
+    <section id="section-services" class="admin-section" style="display: none;">
+      <div class="admin-section-header-row">
+        <h2 class="admin-section-title">Services</h2>
+        <button class="btn btn-solid" id="new-service-btn">+ Add Service</button>
+      </div>
+      <div id="services-admin-list"></div>
+    </section>
+
+    <section id="section-revenue" class="admin-section" style="display: none;">
+      <h2 class="admin-section-title">Revenue</h2>
+      <div class="admin-stat-grid" style="grid-template-columns: repeat(2, 1fr); max-width: 500px;">
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">This Month</div>
+          <div class="admin-stat-value" id="revenue-this-month">—</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Last Month</div>
+          <div class="admin-stat-value" id="revenue-last-month">—</div>
+        </div>
+      </div>
+      <div class="admin-panel" style="margin-top: 24px;">
+        <h3 class="admin-panel-title">Last 30 Days</h3>
+        <div id="revenue-chart"></div>
+      </div>
+    </section>
+
+    <section id="section-reviews" class="admin-section" style="display: none;">
+      <h2 class="admin-section-title">Reviews</h2>
+      <div class="admin-section-header-row" style="margin-bottom: 10px;">
+        <h3 class="admin-panel-title">Pending Approval</h3>
+      </div>
+      <div id="reviews-pending-list"></div>
+      <div class="admin-section-header-row" style="margin: 36px 0 10px;">
+        <h3 class="admin-panel-title">Approved Reviews</h3>
+      </div>
+      <div id="reviews-approved-list"></div>
+    </section>
+
+    <section id="section-settings" class="admin-section" style="display: none;">
+      <h2 class="admin-section-title">Settings</h2>
+      <div class="admin-panel" style="margin-bottom: 24px;">
+        <h3 class="admin-panel-title">General Info</h3>
+        <form id="general-settings-form">
+          <div class="form-group">
+            <label for="settings-phone">Phone</label>
+            <input type="text" id="settings-phone">
+          </div>
+          <div class="form-group">
+            <label for="settings-email">Email</label>
+            <input type="text" id="settings-email">
+          </div>
+          <div class="form-group">
+            <label for="settings-address">Address Note</label>
+            <input type="text" id="settings-address">
+          </div>
+          <button type="submit" class="btn btn-solid">Save</button>
+          <div id="general-settings-status"></div>
+        </form>
+      </div>
+      <div class="admin-panel">
+        <h3 class="admin-panel-title">Business Hours</h3>
+        <form id="hours-settings-form">
+          <div class="form-group">
+            <label for="settings-hours-weekday">Mon–Fri</label>
+            <input type="text" id="settings-hours-weekday">
+          </div>
+          <div class="form-group">
+            <label for="settings-hours-weekend">Sat–Sun</label>
+            <input type="text" id="settings-hours-weekend">
+          </div>
+          <button type="submit" class="btn btn-solid">Save</button>
+          <div id="hours-settings-status"></div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="appointment-modal">
+  <div class="modal">
+    <button class="modal-close" id="appointment-modal-close" aria-label="Close">&times;</button>
+    <h3 id="appointment-modal-title">New Appointment</h3>
+    <form id="appointment-form" style="margin-top: 18px;">
+      <input type="hidden" id="appt-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="appt-name">Name</label>
+          <input type="text" id="appt-name" required>
+        </div>
+        <div class="form-group">
+          <label for="appt-phone">Phone</label>
+          <input type="tel" id="appt-phone" required>
+        </div>
+      </div>
       <div class="form-group">
-        <label for="admin-password">Password</label>
-        <input type="password" id="admin-password" autocomplete="current-password">
+        <label for="appt-email">Email</label>
+        <input type="email" id="appt-email" required>
       </div>
-      <button class="btn btn-solid" id="admin-login-btn">Log In</button>
-      <div id="login-status"></div>
-    </div>
-
-    <div id="dashboard-panel" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <p style="color: var(--text-muted); margin: 0;">Showing the most recent 200 of each.</p>
-        <button class="btn" id="admin-logout-btn">Log Out</button>
+      <div class="form-group">
+        <label for="appt-service">Service</label>
+        <input type="text" id="appt-service" placeholder="e.g. Brow Threading — $35" required>
       </div>
-
-      <div class="section-header" style="text-align: left; margin-bottom: 20px;">
-        <h2 style="font-size: 1.6rem;">Bookings</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="appt-date">Date</label>
+          <input type="date" id="appt-date" required>
+        </div>
+        <div class="form-group">
+          <label for="appt-time">Time</label>
+          <input type="time" id="appt-time" required>
+        </div>
       </div>
-      <div id="bookings-list"></div>
-
-      <div class="section-header" style="text-align: left; margin: 50px 0 20px;">
-        <h2 style="font-size: 1.6rem;">Contact Messages</h2>
+      <div class="form-group">
+        <label for="appt-notes">Notes</label>
+        <textarea id="appt-notes" rows="3"></textarea>
       </div>
-      <div id="messages-list"></div>
-    </div>
+      <button type="submit" class="btn btn-solid">Save Appointment</button>
+      <div id="appointment-modal-status"></div>
+    </form>
   </div>
-</section>
+</div>
+
+<div class="modal-overlay" id="service-edit-modal">
+  <div class="modal">
+    <button class="modal-close" id="service-edit-modal-close" aria-label="Close">&times;</button>
+    <h3 id="service-edit-modal-title">Edit Service</h3>
+    <form id="service-edit-form" style="margin-top: 18px;">
+      <input type="hidden" id="svc-id">
+      <div class="form-group">
+        <label for="svc-category">Category</label>
+        <select id="svc-category">
+          <option>Waxing</option>
+          <option>Threading</option>
+          <option>Facial & Other</option>
+          <option>Bundle</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="svc-name">Name</label>
+        <input type="text" id="svc-name" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="svc-duration">Duration</label>
+          <input type="text" id="svc-duration" placeholder="e.g. 30 mins" required>
+        </div>
+        <div class="form-group">
+          <label for="svc-price">Price ($)</label>
+          <input type="number" id="svc-price" min="0" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="svc-description">Description</label>
+        <textarea id="svc-description" rows="2"></textarea>
+      </div>
+      <div class="form-group" style="display: flex; gap: 24px; align-items: center;">
+        <label style="margin: 0; text-transform: none; font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="svc-featured" style="width: auto;"> Featured
+        </label>
+        <label style="margin: 0; text-transform: none; font-size: 0.92rem; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="svc-active" style="width: auto;" checked> Active
+        </label>
+      </div>
+      <button type="submit" class="btn btn-solid">Save Service</button>
+      <div id="service-edit-status"></div>
+    </form>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
-<script src="js/admin.js"></script>
+<script src="js/admin-dashboard.js"></script>
 </body>
 </html>

@@ -49,7 +49,9 @@ async function handleApi(req, res, apiPath) {
     return send(res, 404, JSON.stringify({ error: 'Not found' }), { 'Content-Type': 'application/json' });
   }
   const { modulePath, query } = resolved;
-  req.query = query;
+
+  const urlQuery = Object.fromEntries(new URL(req.url, 'http://localhost').searchParams);
+  req.query = { ...urlQuery, ...query };
 
   delete require.cache[require.resolve(modulePath)];
   const handler = require(modulePath);

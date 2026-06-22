@@ -9,8 +9,9 @@ module.exports = async (req, res) => {
   try {
     const sql = getSql();
     const rows = await sql`
-      select id, category, name, duration, price_cents, display_order, description
+      select id, category, name, duration, price_cents, display_order, description, is_featured
       from services
+      where is_active = true
       order by display_order asc
     `;
     return res.status(200).json({ services: rows });

@@ -79,6 +79,24 @@ header {
   display: block;
 }
 
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-left: 12px;
+  border-radius: 50%;
+  border: 1px solid #2a2620;
+  color: #8a8377;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.admin-link:hover {
+  color: var(--gold-light);
+  border-color: var(--gold-light);
+}
+
 .nav-links {
   display: flex;
   align-items: center;
