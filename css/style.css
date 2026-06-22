@@ -126,6 +126,21 @@ header {
   color: #fff;
 }
 
+.nav-links a.btn-outline-nav {
+  background: transparent;
+  border-color: var(--gold-light);
+  color: #f3efe7;
+  opacity: 1;
+  padding: 9px 20px;
+  font-size: 0.7rem;
+}
+
+.nav-links a.btn-outline-nav:hover {
+  background: var(--gold-light);
+  border-color: var(--gold-light);
+  color: #0e0c09;
+}
+
 .nav-toggle {
   display: none;
   background: none;
