@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>My Account — Halo Aesthetic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <a href="index.html" class="logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="booking.html" class="btn">Book Now</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
+  </nav>
+</header>
+
+<section class="hero" style="min-height: 26vh;">
+  <div>
+    <div class="hero-eyebrow">Your Account</div>
+    <h1 id="account-heading">My Account</h1>
+  </div>
+</section>
+
+<section id="not-logged-in" style="display: none;">
+  <div class="container" style="max-width: 460px; text-align: center;">
+    <p style="color: var(--text-muted); margin-bottom: 24px;">You need to log in to view your account.</p>
+    <a href="login.html" class="btn btn-solid">Log In</a>
+  </div>
+</section>
+
+<section id="account-content" style="display: none;">
+  <div class="container" style="max-width: 680px;">
+
+    <div class="form-panel" style="margin-bottom: 30px;">
+      <h3 style="margin-bottom: 20px;">Profile</h3>
+      <form id="profile-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="p-full-name">Full Name</label>
+            <input type="text" id="p-full-name" name="fullName">
+          </div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="p-username" disabled>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="p-email" disabled>
+          </div>
+          <div class="form-group">
+            <label for="p-phone">Phone</label>
+            <input type="tel" id="p-phone" name="phone">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="p-dob">Date of Birth</label>
+            <input type="date" id="p-dob" name="dateOfBirth">
+          </div>
+          <div class="form-group">
+            <label for="p-gender">Gender (optional)</label>
+            <select id="p-gender" name="gender">
+              <option value="">Prefer not to say</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="nonbinary">Non-binary</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="p-bio">Bio / About Me</label>
+          <textarea id="p-bio" name="bio" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="p-location">Location</label>
+            <input type="text" id="p-location" name="location">
+          </div>
+          <div class="form-group">
+            <label for="p-education">Education</label>
+            <input type="text" id="p-education" name="education">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="p-skills">Skills (comma-separated)</label>
+          <input type="text" id="p-skills" placeholder="e.g. Photography, Yoga, Baking">
+        </div>
+        <div class="form-group">
+          <label for="p-interests">Interests (comma-separated)</label>
+          <input type="text" id="p-interests" placeholder="e.g. Travel, Fashion, Music">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="p-instagram">Instagram</label>
+            <input type="text" id="p-instagram" placeholder="@username">
+          </div>
+          <div class="form-group">
+            <label for="p-website">Website</label>
+            <input type="text" id="p-website" placeholder="https://...">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-solid">Save Profile</button>
+        <div id="profile-status"></div>
+      </form>
+    </div>
+
+    <div class="form-panel" style="margin-bottom: 30px;">
+      <h3 style="margin-bottom: 16px;">Privacy</h3>
+      <div class="form-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
+        <input type="checkbox" id="p-is-private" style="width: auto;">
+        <label for="p-is-private" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Make my profile private</label>
+      </div>
+      <div id="privacy-status"></div>
+    </div>
+
+    <div class="form-panel" style="margin-bottom: 30px;">
+      <h3 style="margin-bottom: 16px;">Notification Preferences</h3>
+      <div class="form-group" style="display: flex; align-items: center; gap: 12px;">
+        <input type="checkbox" id="n-booking-reminders" style="width: auto;">
+        <label for="n-booking-reminders" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Email me booking reminders</label>
+      </div>
+      <div class="form-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
+        <input type="checkbox" id="n-marketing" style="width: auto;">
+        <label for="n-marketing" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Email me promotions and news</label>
+      </div>
+      <button class="btn" id="save-notifications-btn" style="margin-top: 16px;">Save Preferences</button>
+      <div id="notifications-status"></div>
+    </div>
+
+    <div class="form-panel" style="margin-bottom: 30px;">
+      <h3 style="margin-bottom: 20px;">Change Password</h3>
+      <form id="password-form">
+        <div class="form-group">
+          <label for="current-password">Current Password</label>
+          <input type="password" id="current-password" required>
+        </div>
+        <div class="form-group">
+          <label for="new-password">New Password</label>
+          <input type="password" id="new-password" minlength="8" required>
+        </div>
+        <button type="submit" class="btn btn-solid">Change Password</button>
+        <div id="password-status"></div>
+      </form>
+    </div>
+
+    <div class="form-panel" style="margin-bottom: 30px;">
+      <h3 style="margin-bottom: 16px;">Activity History</h3>
+      <div id="activity-list"></div>
+    </div>
+
+    <div style="text-align: center;">
+      <button class="btn" id="logout-btn">Log Out</button>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/auth.js"></script>
+<script src="js/account.js"></script>
+</body>
+</html>

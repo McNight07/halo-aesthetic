@@ -93,3 +93,61 @@ update services set description = case name
   when 'Full Face Refresh' then 'Full face threading paired with a hydrating glow facial.'
 end
 where description is null;
+
+-- Customer account system
+
+create table if not exists users (
+  id serial primary key,
+  full_name text not null,
+  username text unique not null,
+  email text unique not null,
+  password_hash text,
+  google_id text unique,
+  phone text,
+  date_of_birth date,
+  gender text,
+  photo_url text,
+  bio text,
+  location text,
+  education text,
+  skills text[] default '{}',
+  interests text[] default '{}',
+  social_links jsonb default '{}',
+  is_private boolean not null default false,
+  email_verified boolean not null default false,
+  created_at timestamptz default now()
+);
+
+create table if not exists sessions (
+  id text primary key,
+  user_id integer references users(id) on delete cascade,
+  expires_at timestamptz not null,
+  created_at timestamptz default now()
+);
+
+create table if not exists email_verification_tokens (
+  token text primary key,
+  user_id integer references users(id) on delete cascade,
+  expires_at timestamptz not null
+);
+
+create table if not exists password_reset_tokens (
+  token text primary key,
+  user_id integer references users(id) on delete cascade,
+  expires_at timestamptz not null
+);
+
+create table if not exists notification_preferences (
+  user_id integer primary key references users(id) on delete cascade,
+  email_booking_reminders boolean default true,
+  email_marketing boolean default false
+);
+
+create table if not exists activity_log (
+  id serial primary key,
+  user_id integer references users(id) on delete cascade,
+  action text not null,
+  created_at timestamptz default now()
+);
+
+alter table bookings add column if not exists user_id integer references users(id);

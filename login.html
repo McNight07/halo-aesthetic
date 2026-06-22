@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Log in to your Halo Aesthetic account.">
+<title>Log In — Halo Aesthetic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <a href="index.html" class="logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="booking.html" class="btn">Book Now</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
+  </nav>
+</header>
+
+<section class="hero" style="min-height: 30vh;">
+  <div>
+    <div class="hero-eyebrow">Welcome Back</div>
+    <h1>Log In</h1>
+  </div>
+</section>
+
+<section>
+  <div class="container" style="max-width: 460px;">
+    <div class="form-panel">
+      <form id="login-form">
+        <div class="form-group">
+          <label for="l-email">Email</label>
+          <input type="email" id="l-email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="l-password">Password</label>
+          <input type="password" id="l-password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-solid">Log In</button>
+        <div id="login-status"></div>
+        <p class="form-note">
+          <a href="forgot-password.html" style="text-decoration: underline;">Forgot your password?</a><br>
+          Don't have an account? <a href="signup.html" style="text-decoration: underline;">Sign up</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>Halo Aesthetic</h4>
+        <p>Private, by-appointment waxing, threading, and facial studio in Denver, CO.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="booking.html">Book Now</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li>By appointment — Denver, CO 80203</li>
+          <li>(303) 727-0746</li>
+          <li>sofiazamani7@gmail.com</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Halo Aesthetic. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("login-form");
+    const status = document.getElementById("login-status");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      submitBtn.disabled = true;
+      status.textContent = "Logging in...";
+      status.className = "";
+
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+          window.location.href = "account.html";
+        } else {
+          status.textContent = result.error || "Login failed.";
+          status.className = "error";
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        status.textContent = "Something went wrong. Please try again.";
+        status.className = "error";
+        submitBtn.disabled = false;
+      }
+    });
+  });
+</script>
+</body>
+</html>
