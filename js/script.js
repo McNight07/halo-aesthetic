@@ -86,8 +86,20 @@ document.addEventListener("DOMContentLoaded", () => {
   loadServicesIntoSelect().then(prefillBookingFromCart);
   loadServicesIntoPage();
   setupServiceModal();
+  setupAddToCartButtons();
   updateCartBadge();
 });
+
+function setupAddToCartButtons() {
+  document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const name = btn.dataset.name;
+      const priceCents = parseInt(btn.dataset.priceCents, 10);
+      addToCart({ name, price_cents: priceCents });
+      showToast(`${name} added to cart`);
+    });
+  });
+}
 
 const FALLBACK_SERVICES = [
   { category: "Waxing", name: "Back Wax", duration: "1 hr", price_cents: 5500, description: "Smooth, long-lasting hair removal for the full back." },
