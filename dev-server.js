@@ -24,20 +24,19 @@ function send(res, status, body, headers = {}) {
   res.end(body);
 }
 
+// Mirrors the rewrites in vercel.json: /api/<dir>/:action -> /api/<dir>/handler?action=:action
 function resolveApiModule(apiPath) {
   const exactPath = path.join(ROOT, 'api', `${apiPath}.js`);
   if (fs.existsSync(exactPath)) {
     return { modulePath: exactPath, query: {} };
   }
 
-  // Support Vercel-style catch-all routes: api/<dir>/[...action].js
   const segments = apiPath.split('/');
-  for (let i = segments.length - 1; i > 0; i--) {
-    const dir = segments.slice(0, i).join('/');
-    const rest = segments.slice(i);
-    const catchAllPath = path.join(ROOT, 'api', dir, '[...action].js');
-    if (fs.existsSync(catchAllPath)) {
-      return { modulePath: catchAllPath, query: { action: rest } };
+  if (segments.length === 2) {
+    const [dir, action] = segments;
+    const handlerPath = path.join(ROOT, 'api', dir, 'handler.js');
+    if (fs.existsSync(handlerPath)) {
+      return { modulePath: handlerPath, query: { action } };
     }
   }
 
