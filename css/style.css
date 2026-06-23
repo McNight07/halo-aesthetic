@@ -938,8 +938,8 @@ footer {
 @media (max-width: 720px) {
   .hero-dark {
     min-height: 78vh;
-    background-size: cover !important;
-    background-position: center !important;
+    background-size: 280% auto !important;
+    background-position: 100% 0% !important;
   }
 
   .hero-content {
