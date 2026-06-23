@@ -169,7 +169,7 @@ async function handleBookingStatus(req, res) {
       returning id, name, email, service, preferred_date, preferred_time
     `;
 
-    if (status === 'confirmed' || status === 'cancelled') {
+    if (status === 'confirmed' || status === 'cancelled' || status === 'completed') {
       await sendBookingEmail(status, rows[0]);
     }
 

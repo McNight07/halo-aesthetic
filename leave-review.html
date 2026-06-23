@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Leave a review for your recent visit to Halo Aesthetic in Denver, CO.">
+<title>Leave a Review — Halo Aesthetic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .star-rating { display: flex; gap: 6px; font-size: 32px; margin-bottom: 6px; }
+  .star-rating span { cursor: pointer; color: #d8d2c0; transition: color 0.15s; }
+  .star-rating span.filled { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <a href="index.html" class="logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="booking.html" class="btn">Book Now</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
+  </nav>
+</header>
+
+<section class="hero" style="min-height: 30vh;">
+  <div>
+    <div class="hero-eyebrow">We'd Love Your Feedback</div>
+    <h1>Leave a Review</h1>
+    <p>Thank you for visiting Halo Aesthetic — let us know how it went.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container" style="max-width: 560px;">
+    <div class="form-panel">
+      <form id="review-form">
+        <div class="form-group">
+          <label for="r-name">Your Name</label>
+          <input type="text" id="r-name" required>
+        </div>
+        <div class="form-group">
+          <label>Your Rating</label>
+          <div class="star-rating" id="r-stars">
+            <span data-value="1">&#9733;</span>
+            <span data-value="2">&#9733;</span>
+            <span data-value="3">&#9733;</span>
+            <span data-value="4">&#9733;</span>
+            <span data-value="5">&#9733;</span>
+          </div>
+          <input type="hidden" id="r-rating" value="5">
+        </div>
+        <div class="form-group">
+          <label for="r-comment">Your Review</label>
+          <textarea id="r-comment" rows="5" required placeholder="Tell us about your experience..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-solid">Submit Review</button>
+        <div id="review-status"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>Halo Aesthetic</h4>
+        <p>An intimate, by-appointment sanctuary for waxing, threading, and facial artistry in Denver, CO.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="booking.html">Book Now</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li>By appointment — Denver, CO 80203</li>
+          <li>(303) 727-0746</li>
+          <li>haloaesthetic@hotmail.com</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">&copy; 2026 Halo Aesthetic. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const nameParam = params.get("name");
+  if (nameParam) document.getElementById("r-name").value = nameParam;
+
+  const stars = document.querySelectorAll("#r-stars span");
+  const ratingInput = document.getElementById("r-rating");
+
+  function paintStars(value) {
+    stars.forEach((s) => s.classList.toggle("filled", Number(s.dataset.value) <= value));
+  }
+  paintStars(5);
+
+  stars.forEach((s) => {
+    s.addEventListener("click", () => {
+      ratingInput.value = s.dataset.value;
+      paintStars(Number(s.dataset.value));
+    });
+  });
+
+  document.getElementById("review-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = document.getElementById("review-status");
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    status.textContent = "Submitting your review...";
+    status.className = "";
+
+    try {
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientName: document.getElementById("r-name").value,
+          rating: ratingInput.value,
+          comment: document.getElementById("r-comment").value,
+        }),
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        status.textContent = "Thank you! Your review has been submitted.";
+        status.className = "success";
+        e.target.reset();
+        paintStars(5);
+        ratingInput.value = 5;
+      } else {
+        status.textContent = result.error || "Something went wrong. Please try again.";
+        status.className = "error";
+      }
+    } catch (err) {
+      status.textContent = "Something went wrong. Please try again.";
+      status.className = "error";
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

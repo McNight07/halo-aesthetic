@@ -2,6 +2,7 @@ const { Resend } = require('resend');
 
 const FROM_ADDRESS = 'Halo Aesthetic <hello@haloaesthetic.com>';
 const REPLY_TO_ADDRESS = 'haloaesthetic@hotmail.com';
+const SITE_URL = process.env.SITE_URL || 'https://www.haloaesthetic.com';
 
 function getResend() {
   if (!process.env.RESEND_API_KEY) {
@@ -120,6 +121,24 @@ function buildEmail(type, booking) {
         intro: `Hi ${firstName}, your appointment below has been cancelled. If this wasn't expected or you'd like to rebook, just reply to this email or call (303) 727-0746.`,
         details: detailsTable(booking),
         footerNote: `We hope to see you again soon at Halo Aesthetic.`,
+      }),
+    };
+  }
+
+  if (type === 'completed') {
+    const reviewUrl = `${SITE_URL}/leave-review.html?name=${encodeURIComponent(booking.name)}`;
+    return {
+      subject: `Thank you for visiting, ${firstName}! — Halo Aesthetic`,
+      html: baseLayout({
+        heading: `Thank you, ${firstName}!`,
+        intro: `It was such a pleasure having you in the studio. We hope you're loving your results and feeling your best!`,
+        details: `
+          <div style="margin:24px 0; padding:20px; background:#f6f1e3; border:1px solid #e3dcc7; border-radius:10px; text-align:center;">
+            <p style="font-size:15px; color:#3a362e; margin:0 0 16px;">${firstName}, your support means the world to us. If you have a moment, we'd be so grateful if you could share your experience with others.</p>
+            <a href="${reviewUrl}" style="display:inline-block; background:#1c1a14; color:#f6f1e3; text-decoration:none; font-family:Georgia,serif; font-size:14px; letter-spacing:0.5px; padding:12px 28px; border-radius:999px;">Leave a Review</a>
+          </div>
+        `,
+        footerNote: `We can't wait to welcome you back, ${firstName}. Reply to this email or call (303) 727-0746 any time.`,
       }),
     };
   }
