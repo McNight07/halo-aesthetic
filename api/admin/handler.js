@@ -3,6 +3,7 @@ const { getSql } = require('../_db/client');
 const { createSessionToken, isAdminAuthenticated, setSessionCookie, clearSessionCookie } = require('../_db/admin-auth');
 const { sendBookingEmail, sendMessageReplyEmail, sendCustomClientEmail } = require('../_db/email');
 const { isValidEmail, isNonEmptyString } = require('../_db/validate');
+const { buildReminderContent } = require('../_db/reminders');
 
 function safeCompare(a, b) {
   const bufA = Buffer.from(String(a));
@@ -178,6 +179,57 @@ async function handleBookingStatus(req, res) {
   } catch (err) {
     console.error('booking status update failed', err);
     return res.status(500).json({ error: 'Could not update appointment status.' });
+  }
+}
+
+async function handleSendReminder(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { id } = req.body || {};
+  if (!id) {
+    return res.status(400).json({ error: 'id is required' });
+  }
+
+  try {
+    const sql = getSql();
+    const bookingRows = await sql`select * from bookings where id = ${id}`;
+    if (bookingRows.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found.' });
+    }
+    const booking = bookingRows[0];
+    if (!booking.email) {
+      return res.status(400).json({ error: 'This appointment has no email on file.' });
+    }
+
+    const settingsRows = await sql`select * from business_settings`;
+    const settings = {};
+    settingsRows.forEach((row) => { settings[row.key] = row.value; });
+
+    const { subject, body } = buildReminderContent(booking, settings);
+
+    try {
+      await sendCustomClientEmail({ to: booking.email, subject, bodyHtml: body });
+      await sql`update bookings set reminder_status = 'sent', reminder_sent_at = now() where id = ${id}`;
+      await sql`
+        insert into client_emails (client_id, booking_id, to_email, subject, body, status)
+        values (${booking.client_id || null}, ${booking.id}, ${booking.email}, ${subject}, ${body}, 'sent')
+      `;
+      return res.status(200).json({ success: true });
+    } catch (sendErr) {
+      console.error('manual reminder send failed', sendErr);
+      await sql`update bookings set reminder_status = 'failed' where id = ${id}`;
+      await sql`
+        insert into client_emails (client_id, booking_id, to_email, subject, body, status)
+        values (${booking.client_id || null}, ${booking.id}, ${booking.email}, ${subject}, ${body}, 'failed')
+      `;
+      return res.status(502).json({ error: 'Could not send the reminder email.' });
+    }
+  } catch (err) {
+    console.error('reminder lookup failed', err);
+    return res.status(500).json({ error: 'Could not send the reminder.' });
   }
 }
 
@@ -798,6 +850,7 @@ module.exports = async (req, res) => {
   if (action === 'overview') return handleOverview(req, res);
   if (action === 'bookings') return handleBookings(req, res);
   if (action === 'booking-status') return handleBookingStatus(req, res);
+  if (action === 'booking-send-reminder') return handleSendReminder(req, res);
   if (action === 'booking-update') return handleBookingUpdate(req, res);
   if (action === 'booking-delete') return handleBookingDelete(req, res);
   if (action === 'booking-create') return handleBookingCreate(req, res);

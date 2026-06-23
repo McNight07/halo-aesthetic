@@ -214,8 +214,12 @@ create table if not exists business_settings (
 
 insert into business_settings (key, value) values
   ('business_hours', '{"mon_fri": "9am - 8pm", "sat_sun": "10am - 6pm"}'),
-  ('general', '{"phone": "(303) 727-0746", "email": "haloaesthetic@hotmail.com", "address": "By appointment — Denver, CO 80203"}')
+  ('general', '{"phone": "(303) 727-0746", "email": "haloaesthetic@hotmail.com", "address": "By appointment — Denver, CO 80203"}'),
+  ('reminders', '{"enabled": true, "subject": "Reminder: Your Appointment Tomorrow at {{business_name}}", "body": "<p>Hi {{name}},</p><p>This is a friendly reminder about your upcoming appointment:</p><ul><li><strong>Service:</strong> {{service}}</li><li><strong>Date:</strong> {{date}}</li><li><strong>Time:</strong> {{time}}</li><li><strong>Specialist:</strong> {{staff}}</li></ul><p>Studio address: {{address}}<br>Questions? Call us at {{phone}}.</p><p>We look forward to seeing you!</p>"}')
 on conflict (key) do nothing;
+
+alter table bookings add column if not exists reminder_status text not null default 'scheduled';
+alter table bookings add column if not exists reminder_sent_at timestamptz;
 
 -- Backfill: create a client row per distinct contact found in existing bookings,
 -- and link client_id on those bookings. Guarded so re-running this script is safe.

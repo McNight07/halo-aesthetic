@@ -280,7 +280,8 @@ async function loadAppointments() {
               <div class="appt-service-line appt-service-total">Total <span class="price-value">${formatCents(totalCents)}</span></div>
             </div>
             <span class="appt-date-badge">${formatDate(b.preferred_date)}</span>
-            <span class="appt-time-badge">${formatTime(b.preferred_time)}</span><br>
+            <span class="appt-time-badge">${formatTime(b.preferred_time)}</span>
+            <span class="reminder-badge reminder-${b.reminder_status || "scheduled"}">Reminder: ${(b.reminder_status || "scheduled").replace(/^./, (c) => c.toUpperCase())}</span><br>
             ${escapeHtml(b.phone)} · ${escapeHtml(b.email)}
             ${b.notes ? `<br>Notes: ${escapeHtml(b.notes)}` : ""}
           </div>
@@ -293,6 +294,7 @@ async function loadAppointments() {
             <option value="cancelled" ${b.status === "cancelled" ? "selected" : ""}>Cancelled</option>
           </select>
           <button class="email-appt-btn" data-id="${b.id}">E-Mail</button>
+          <button class="send-reminder-btn" data-id="${b.id}">Send Reminder Now</button>
           <button class="edit-appt-btn" data-id="${b.id}">Edit</button>
           <button class="delete-appt-btn" data-id="${b.id}">Delete</button>
         </div>
@@ -325,6 +327,23 @@ async function loadAppointments() {
         e.stopPropagation();
         const booking = data.bookings.find((b) => String(b.id) === btn.dataset.id);
         if (booking) openEmailComposeModal({ clientId: booking.client_id, bookingId: booking.id, email: booking.email, name: booking.name });
+      });
+    });
+
+    list.querySelectorAll(".send-reminder-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        btn.disabled = true;
+        btn.textContent = "Sending...";
+        try {
+          await api("booking-send-reminder", { method: "POST", body: JSON.stringify({ id: btn.dataset.id }) });
+          showToast("Reminder email sent");
+          loadAppointments();
+        } catch (err) {
+          showToast(err.message || "Could not send the reminder.");
+          btn.disabled = false;
+          btn.textContent = "Send Reminder Now";
+        }
       });
     });
 
@@ -1453,6 +1472,11 @@ async function loadSettings() {
     document.getElementById("settings-address").value = general.address || "";
     document.getElementById("settings-hours-weekday").value = hours.mon_fri || "";
     document.getElementById("settings-hours-weekend").value = hours.sat_sun || "";
+
+    const reminders = data.settings.reminders || {};
+    document.getElementById("reminder-enabled").checked = reminders.enabled !== false;
+    document.getElementById("reminder-subject").value = reminders.subject || "";
+    document.getElementById("reminder-body").value = reminders.body || "";
   } catch (err) {
     showToast(err.message);
   }
@@ -1493,6 +1517,29 @@ function setupSettingsForms() {
           value: {
             mon_fri: document.getElementById("settings-hours-weekday").value,
             sat_sun: document.getElementById("settings-hours-weekend").value,
+          },
+        }),
+      });
+      status.textContent = "Saved.";
+      status.className = "success";
+    } catch (err) {
+      status.textContent = err.message;
+      status.className = "error";
+    }
+  });
+
+  document.getElementById("reminder-settings-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = document.getElementById("reminder-settings-status");
+    try {
+      await api("settings", {
+        method: "PUT",
+        body: JSON.stringify({
+          key: "reminders",
+          value: {
+            enabled: document.getElementById("reminder-enabled").checked,
+            subject: document.getElementById("reminder-subject").value,
+            body: document.getElementById("reminder-body").value,
           },
         }),
       });

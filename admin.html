@@ -221,6 +221,26 @@
           <div id="hours-settings-status"></div>
         </form>
       </div>
+      <div class="admin-panel" style="margin-top: 24px;">
+        <h3 class="admin-panel-title">Appointment Reminders</h3>
+        <p class="admin-row-meta" style="margin-bottom: 18px;">Automatically emails each client 24 hours before their appointment. Use placeholders in the template: <code>{{name}}</code>, <code>{{service}}</code>, <code>{{date}}</code>, <code>{{time}}</code>, <code>{{staff}}</code>, <code>{{business_name}}</code>, <code>{{address}}</code>, <code>{{phone}}</code>.</p>
+        <form id="reminder-settings-form">
+          <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="reminder-enabled" style="width: auto;">
+            <label for="reminder-enabled" style="margin: 0;">Enable automatic reminder emails</label>
+          </div>
+          <div class="form-group">
+            <label for="reminder-subject">Subject Template</label>
+            <input type="text" id="reminder-subject">
+          </div>
+          <div class="form-group">
+            <label for="reminder-body">Body Template (HTML)</label>
+            <textarea id="reminder-body" rows="6"></textarea>
+          </div>
+          <button type="submit" class="btn btn-solid">Save Template</button>
+          <div id="reminder-settings-status"></div>
+        </form>
+      </div>
     </section>
 
   </main>

@@ -283,6 +283,19 @@
 .appt-date-badge { background: rgba(86, 152, 196, 0.18); color: #8cc6f0; }
 .appt-time-badge { background: rgba(207, 161, 94, 0.2); color: #f0c987; }
 
+.reminder-badge {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.reminder-scheduled { background: rgba(138, 131, 119, 0.18); color: #b8b0a0; }
+.reminder-sent { background: rgba(86, 167, 99, 0.16); color: #93e0a3; }
+.reminder-failed { background: rgba(196, 86, 86, 0.16); color: #f0a0a0; }
+
 .admin-stat-label {
   font-size: 0.8rem;
   font-weight: 600;

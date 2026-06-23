@@ -3,5 +3,8 @@
     { "source": "/api/auth/:action", "destination": "/api/auth/handler?action=:action" },
     { "source": "/api/account/:action", "destination": "/api/account/handler?action=:action" },
     { "source": "/api/admin/:action", "destination": "/api/admin/handler?action=:action" }
+  ],
+  "crons": [
+    { "path": "/api/cron/send-reminders", "schedule": "0 * * * *" }
   ]
 }
