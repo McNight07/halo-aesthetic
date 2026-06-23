@@ -50,7 +50,7 @@
         <div id="login-status"></div>
         <p class="form-note">
           <a href="forgot-password.html" style="text-decoration: underline;">Forgot your password?</a><br>
-          Don't have an account? <a href="signup.html" style="text-decoration: underline;">Sign up</a>
+          Don't have an account? <a href="signup.html" id="login-signup-link" style="text-decoration: underline;">Sign up</a>
         </p>
       </form>
     </div>
@@ -91,6 +91,14 @@
     const form = document.getElementById("login-form");
     const status = document.getElementById("login-status");
 
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get("redirect");
+
+    const signupLink = document.getElementById("login-signup-link");
+    if (signupLink && redirectTo) {
+      signupLink.href = `signup.html?redirect=${encodeURIComponent(redirectTo)}`;
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const submitBtn = form.querySelector('button[type="submit"]');
@@ -109,7 +117,7 @@
         const result = await response.json();
 
         if (response.ok) {
-          window.location.href = "account.html";
+          window.location.href = redirectTo ? decodeURIComponent(redirectTo) : "account.html";
         } else {
           status.textContent = result.error || "Login failed.";
           status.className = "error";

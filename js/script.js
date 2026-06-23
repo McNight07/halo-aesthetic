@@ -118,7 +118,40 @@ document.addEventListener("DOMContentLoaded", () => {
   setupBookingSuccessModal();
   setupAddToCartButtons();
   updateCartBadge();
+  requireAuthForBooking();
 });
+
+/* ---------- Require sign-in before booking ---------- */
+
+async function requireAuthForBooking() {
+  const bookingForm = document.getElementById("booking-form");
+  const gate = document.getElementById("auth-required-modal");
+  if (!bookingForm || !gate) return;
+
+  const user = await getCurrentUser();
+
+  if (!user) {
+    const redirectTo = encodeURIComponent(window.location.pathname.split("/").pop() + window.location.search);
+    const loginLink = document.getElementById("auth-required-login");
+    const signupLink = document.getElementById("auth-required-signup");
+    if (loginLink) loginLink.href = `login.html?redirect=${redirectTo}`;
+    if (signupLink) signupLink.href = `signup.html?redirect=${redirectTo}`;
+    gate.classList.add("open");
+    bookingForm.querySelectorAll("input, textarea, button, select").forEach((el) => (el.disabled = true));
+    return;
+  }
+
+  autofillBookingFromAccount(user);
+}
+
+function autofillBookingFromAccount(user) {
+  const nameInput = document.getElementById("b-name");
+  const emailInput = document.getElementById("b-email");
+  const phoneInput = document.getElementById("b-phone");
+  if (nameInput && !nameInput.value && user.full_name) nameInput.value = user.full_name;
+  if (emailInput && !emailInput.value && user.email) emailInput.value = user.email;
+  if (phoneInput && !phoneInput.value && user.phone) phoneInput.value = user.phone;
+}
 
 function setupAddToCartButtons() {
   document.querySelectorAll(".add-to-cart-btn").forEach((btn) => {
