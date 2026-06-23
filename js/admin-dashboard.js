@@ -608,6 +608,83 @@ async function loadRevenue() {
   loadCalendar();
 }
 
+function setupModalOutsideClick() {
+  document.querySelectorAll(".modal-overlay").forEach((overlay) => {
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) overlay.classList.remove("open");
+    });
+  });
+}
+
+function setupRevenueClicks() {
+  document.getElementById("stat-card-revenue-all-time").addEventListener("click", () => {
+    openPeriodDetail("Total Revenue — All Time");
+  });
+  document.getElementById("stat-card-revenue-this-month").addEventListener("click", () => {
+    const now = new Date();
+    const from = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    openPeriodDetail("This Month's Revenue", from);
+  });
+  document.getElementById("stat-card-revenue-last-month").addEventListener("click", () => {
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const from = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, "0")}-01`;
+    const lastDay = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0).getDate();
+    const to = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    openPeriodDetail("Last Month's Revenue", from, to);
+  });
+}
+
+async function openPeriodDetail(label, from, to) {
+  const modal = document.getElementById("day-detail-modal");
+  const title = document.getElementById("day-detail-title");
+  const summary = document.getElementById("day-detail-summary");
+  const list = document.getElementById("day-detail-list");
+
+  title.textContent = label;
+  summary.textContent = "Loading...";
+  list.innerHTML = "";
+  modal.classList.add("open");
+
+  try {
+    const params = new URLSearchParams({ status: "completed" });
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    const data = await api(`bookings?${params.toString()}`);
+    const bookings = data.bookings;
+
+    if (bookings.length === 0) {
+      summary.textContent = "No completed appointments in this period.";
+      return;
+    }
+
+    const totalCents = bookings.reduce((sum, b) => sum + parseServiceLine(b.service).totalCents, 0);
+    summary.textContent = `${bookings.length} completed appointment${bookings.length === 1 ? "" : "s"} · ${formatCents(totalCents)} total`;
+
+    list.innerHTML = bookings
+      .map((b) => {
+        const { items } = parseServiceLine(b.service);
+        const servicesHtml = items.map((item) => `<div class="appt-service-line">${escapeHtml(item.name)} <span>${formatCents(item.priceCents)}</span></div>`).join("");
+        return `
+          <div class="admin-row-card" style="cursor: default;">
+            <div class="admin-row-main">
+              <h4>${escapeHtml(b.name)}</h4>
+              <div class="admin-row-meta">
+                <div class="appt-services-list">${servicesHtml}</div>
+                <span class="appt-date-badge">${formatDate(b.preferred_date)}</span>
+                <span class="appt-time-badge">${formatTime(b.preferred_time)}</span> · ${escapeHtml(b.phone)}
+              </div>
+            </div>
+            <span class="status-badge status-${b.status}">${b.status}</span>
+          </div>
+        `;
+      })
+      .join("");
+  } catch (err) {
+    summary.textContent = "Could not load revenue details.";
+  }
+}
+
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -925,5 +1002,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSettingsForms();
   setupCalendarNav();
   setupDashboardClicks();
+  setupRevenueClicks();
+  setupModalOutsideClick();
   checkAuthAndLoad();
 });
