@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { getSql } = require('../_db/client');
 const { createSessionToken, isAdminAuthenticated, setSessionCookie, clearSessionCookie } = require('../_db/admin-auth');
+const { sendBookingEmail } = require('../_db/email');
 
 function safeCompare(a, b) {
   const bufA = Buffer.from(String(a));
@@ -163,7 +164,15 @@ async function handleBookingStatus(req, res) {
 
   try {
     const sql = getSql();
-    await sql`update bookings set status = ${status} where id = ${id}`;
+    const rows = await sql`
+      update bookings set status = ${status} where id = ${id}
+      returning id, name, email, service, preferred_date, preferred_time
+    `;
+
+    if (status === 'confirmed' || status === 'cancelled') {
+      await sendBookingEmail(status, rows[0]);
+    }
+
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('booking status update failed', err);
@@ -222,11 +231,19 @@ async function handleBookingCreate(req, res) {
       clientId = inserted[0].id;
     }
 
+    const finalStatus = status || 'confirmed';
     const rows = await sql`
       insert into bookings (name, phone, email, service, preferred_date, preferred_time, notes, status, client_id)
-      values (${name}, ${phone}, ${email}, ${service}, ${date}, ${time}, ${notes || null}, ${status || 'confirmed'}, ${clientId})
-      returning id
+      values (${name}, ${phone}, ${email}, ${service}, ${date}, ${time}, ${notes || null}, ${finalStatus}, ${clientId})
+      returning id, name, email, service, preferred_date, preferred_time
     `;
+
+    if (finalStatus === 'confirmed') {
+      await sendBookingEmail('confirmed', rows[0]);
+    } else if (finalStatus === 'pending') {
+      await sendBookingEmail('received', rows[0]);
+    }
+
     return res.status(201).json({ success: true, id: rows[0].id });
   } catch (err) {
     console.error('admin booking create failed', err);

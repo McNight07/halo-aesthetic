@@ -1,5 +1,6 @@
 const { getSql } = require('./_db/client');
 const { isValidEmail, missingFields } = require('./_db/validate');
+const { sendBookingEmail } = require('./_db/email');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -34,8 +35,11 @@ module.exports = async (req, res) => {
     const rows = await sql`
       insert into bookings (name, phone, email, service, preferred_date, preferred_time, notes, client_id)
       values (${body.name}, ${body.phone}, ${body.email}, ${body.service}, ${body.date}, ${body.time}, ${body.notes || null}, ${clientId})
-      returning id
+      returning id, name, email, service, preferred_date, preferred_time
     `;
+
+    await sendBookingEmail('received', rows[0]);
+
     return res.status(201).json({ success: true, id: rows[0].id });
   } catch (err) {
     console.error('booking insert failed', err);
