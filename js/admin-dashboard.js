@@ -160,7 +160,11 @@ async function loadDashboard() {
           <div class="admin-row-card" style="cursor: default;">
             <div class="admin-row-main">
               <h4>${escapeHtml(b.name)}</h4>
-              <div class="admin-row-meta">${escapeHtml(b.service)} · ${formatDate(b.preferred_date)} at ${formatTime(b.preferred_time)}</div>
+              <div class="admin-row-meta">
+                ${escapeHtml(b.service)} ·
+                <span class="appt-date-badge">${formatDate(b.preferred_date)}</span>
+                <span class="appt-time-badge">${formatTime(b.preferred_time)}</span>
+              </div>
             </div>
             <span class="status-badge status-${b.status}">${b.status}</span>
           </div>
@@ -170,13 +174,75 @@ async function loadDashboard() {
     mostBooked.innerHTML = data.mostBooked.length === 0
       ? '<p class="admin-empty">No bookings yet this month.</p>'
       : data.mostBooked.map((s) => `
-          <div class="admin-row-card" style="cursor: default;">
+          <div class="admin-row-card most-booked-row" data-name="${escapeHtml(s.name)}" data-count="${s.count}">
             <div class="admin-row-main"><h4>${escapeHtml(s.name)}</h4></div>
             <div class="admin-row-meta">${s.count} booking${s.count === 1 ? "" : "s"}</div>
           </div>
         `).join("");
+
+    mostBooked.querySelectorAll(".most-booked-row").forEach((row) => {
+      row.addEventListener("click", () => openServiceDetail(row.dataset.name, row.dataset.count));
+    });
   } catch (err) {
     showToast(err.message);
+  }
+}
+
+function setupDashboardClicks() {
+  const todayKey = () => new Date().toISOString().slice(0, 10);
+
+  document.getElementById("stat-card-today").addEventListener("click", () => openDayDetail(todayKey()));
+  document.getElementById("panel-upcoming").addEventListener("click", (e) => {
+    if (e.target.closest(".admin-row-card")) return;
+    openDayDetail(todayKey());
+  });
+
+  document.getElementById("stat-card-total").addEventListener("click", () => {
+    document.querySelector('.admin-nav-item[data-section="appointments"]').click();
+  });
+  document.getElementById("stat-card-revenue").addEventListener("click", () => {
+    document.querySelector('.admin-nav-item[data-section="revenue"]').click();
+  });
+  document.getElementById("stat-card-clients").addEventListener("click", () => {
+    document.querySelector('.admin-nav-item[data-section="clients"]').click();
+  });
+
+  document.getElementById("service-detail-modal-close").addEventListener("click", () => {
+    document.getElementById("service-detail-modal").classList.remove("open");
+  });
+}
+
+async function openServiceDetail(name, count) {
+  const modal = document.getElementById("service-detail-modal");
+  const title = document.getElementById("service-detail-title");
+  const body = document.getElementById("service-detail-body");
+
+  title.textContent = name;
+  body.innerHTML = "Loading...";
+  modal.classList.add("open");
+
+  try {
+    const data = await api("services-admin");
+    const service = data.services.find((s) => s.name === name);
+
+    if (!service) {
+      body.innerHTML = `<div class="admin-row-meta">${count} booking${count === "1" ? "" : "s"} this month · full service details not found (it may have been removed).</div>`;
+      return;
+    }
+
+    body.innerHTML = `
+      <div class="admin-row-meta" style="margin-bottom: 14px;">
+        <span class="appt-date-badge">${escapeHtml(service.category)}</span>
+        <span class="appt-time-badge">${escapeHtml(service.duration)}</span>
+        ${!service.is_active ? '<span class="status-badge status-cancelled">Inactive</span>' : ""}
+        ${service.is_featured ? '<span class="status-badge status-confirmed">Featured</span>' : ""}
+      </div>
+      <div class="admin-row-meta" style="font-size: 1.1rem; color: #f3efe7; margin-bottom: 10px;">$${(service.price_cents / 100).toFixed(0)}</div>
+      ${service.description ? `<div class="admin-row-meta" style="margin-bottom: 14px;">${escapeHtml(service.description)}</div>` : ""}
+      <div class="admin-row-meta">${count} booking${count === "1" ? "" : "s"} this month</div>
+    `;
+  } catch (err) {
+    body.innerHTML = '<p class="admin-empty">Could not load service details.</p>';
   }
 }
 
@@ -642,7 +708,8 @@ async function openDayDetail(dateKey) {
               <h4>${escapeHtml(b.name)}</h4>
               <div class="admin-row-meta">
                 <div class="appt-services-list">${servicesHtml}</div>
-                ${formatTime(b.preferred_time)} · ${escapeHtml(b.phone)}
+                <span class="appt-date-badge">${formatDate(b.preferred_date)}</span>
+                <span class="appt-time-badge">${formatTime(b.preferred_time)}</span> · ${escapeHtml(b.phone)}
               </div>
             </div>
             <span class="status-badge status-${b.status}">${b.status}</span>
@@ -857,5 +924,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupServiceModal();
   setupSettingsForms();
   setupCalendarNav();
+  setupDashboardClicks();
   checkAuthAndLoad();
 });

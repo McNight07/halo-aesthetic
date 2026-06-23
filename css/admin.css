@@ -184,6 +184,53 @@
   padding: 22px 24px;
 }
 
+.admin-stat-card-clickable {
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.admin-stat-card-clickable:hover {
+  border-color: var(--gold-light);
+  background: rgba(207, 161, 94, 0.08);
+  transform: translateY(-2px);
+}
+
+.admin-panel-clickable {
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.admin-panel-clickable:hover {
+  border-color: rgba(207, 161, 94, 0.4);
+}
+
+.admin-panel-link {
+  float: right;
+  font-size: 0.78rem;
+  text-transform: none;
+  color: var(--gold-light);
+  font-style: normal;
+  font-family: var(--font-sans);
+}
+
+.admin-panel-link-hint {
+  color: #8a8377;
+  cursor: default;
+}
+
+.appt-date-badge,
+.appt-time-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.appt-date-badge { background: rgba(86, 152, 196, 0.18); color: #6cb2e6; }
+.appt-time-badge { background: rgba(207, 161, 94, 0.2); color: #cfa15e; }
+
 .admin-stat-label {
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -472,19 +519,22 @@
    so the modal shell itself needs to be dark here, not the light default. */
 #appointment-modal .modal,
 #service-edit-modal .modal,
-#day-detail-modal .modal {
+#day-detail-modal .modal,
+#service-detail-modal .modal {
   background: #161310;
   border: 1px solid #2a2620;
 }
 
 #appointment-modal .modal-close,
 #service-edit-modal .modal-close,
-#day-detail-modal .modal-close {
+#day-detail-modal .modal-close,
+#service-detail-modal .modal-close {
   color: #b8b0a0;
 }
 
 #appointment-modal .modal-close:hover,
 #service-edit-modal .modal-close:hover,
-#day-detail-modal .modal-close:hover {
+#day-detail-modal .modal-close:hover,
+#service-detail-modal .modal-close:hover {
   color: #f3efe7;
 }

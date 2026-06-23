@@ -50,31 +50,31 @@
     <section id="section-dashboard" class="admin-section">
       <h2 class="admin-section-title">Dashboard</h2>
       <div class="admin-stat-grid">
-        <div class="admin-stat-card">
+        <div class="admin-stat-card admin-stat-card-clickable" id="stat-card-total">
           <div class="admin-stat-label">Total Appointments</div>
           <div class="admin-stat-value" id="stat-total-appointments">—</div>
         </div>
-        <div class="admin-stat-card">
+        <div class="admin-stat-card admin-stat-card-clickable" id="stat-card-today">
           <div class="admin-stat-label">Today's Appointments</div>
           <div class="admin-stat-value" id="stat-today-appointments">—</div>
         </div>
-        <div class="admin-stat-card">
+        <div class="admin-stat-card admin-stat-card-clickable" id="stat-card-revenue">
           <div class="admin-stat-label">Monthly Revenue</div>
           <div class="admin-stat-value" id="stat-monthly-revenue">—</div>
         </div>
-        <div class="admin-stat-card">
+        <div class="admin-stat-card admin-stat-card-clickable" id="stat-card-clients">
           <div class="admin-stat-label">New Clients This Month</div>
           <div class="admin-stat-value" id="stat-new-clients">—</div>
         </div>
       </div>
 
       <div class="admin-grid-2">
-        <div class="admin-panel">
-          <h3 class="admin-panel-title">Upcoming Appointments</h3>
+        <div class="admin-panel admin-panel-clickable" id="panel-upcoming">
+          <h3 class="admin-panel-title">Upcoming Appointments <span class="admin-panel-link">View today &rarr;</span></h3>
           <div id="upcoming-list"></div>
         </div>
         <div class="admin-panel">
-          <h3 class="admin-panel-title">Most Booked Services</h3>
+          <h3 class="admin-panel-title">Most Booked Services <span class="admin-panel-link admin-panel-link-hint">Click a service for details</span></h3>
           <div id="most-booked-list"></div>
         </div>
       </div>
@@ -289,6 +289,14 @@
       <button type="submit" class="btn btn-solid">Save Service</button>
       <div id="service-edit-status"></div>
     </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="service-detail-modal">
+  <div class="modal" style="max-width: 480px;">
+    <button class="modal-close" id="service-detail-modal-close" aria-label="Close">&times;</button>
+    <h3 id="service-detail-title">Service</h3>
+    <div id="service-detail-body" style="margin-top: 14px;"></div>
   </div>
 </div>
 
