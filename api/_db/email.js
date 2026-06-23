@@ -195,4 +195,39 @@ async function sendContactNotificationEmail(message) {
   }
 }
 
-module.exports = { sendBookingEmail, sendContactNotificationEmail };
+async function sendMessageReplyEmail(message, replyText) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not set — skipping email send');
+    return;
+  }
+  if (!message.email) return;
+
+  const firstName = message.name.split(' ')[0];
+  const html = baseLayout({
+    heading: `A reply from Halo Aesthetic, ${firstName}`,
+    intro: replyText.replace(/\n/g, '<br>'),
+    details: `
+      <div style="margin-top:24px; padding:16px 20px; background:#f6f1e3; border:1px solid #e3dcc7; border-radius:10px;">
+        <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:#6b6558; margin-bottom:8px;">Your original message</div>
+        <div style="font-size:14px; color:#3a362e; font-style:italic;">${message.message}</div>
+      </div>
+    `,
+    footerNote: `Reply directly to this email if you have any more questions, or visit us at <a href="https://www.haloaesthetic.com" style="color:#9c6a2e;">haloaesthetic.com</a>.`,
+  });
+
+  try {
+    const resend = getResend();
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: message.email,
+      replyTo: REPLY_TO_ADDRESS,
+      subject: `Re: your message to Halo Aesthetic`,
+      html,
+    });
+  } catch (err) {
+    console.error(`Failed to send reply email for message ${message.id}:`, err);
+    throw err;
+  }
+}
+
+module.exports = { sendBookingEmail, sendContactNotificationEmail, sendMessageReplyEmail };

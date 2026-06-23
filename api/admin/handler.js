@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const { getSql } = require('../_db/client');
 const { createSessionToken, isAdminAuthenticated, setSessionCookie, clearSessionCookie } = require('../_db/admin-auth');
-const { sendBookingEmail } = require('../_db/email');
+const { sendBookingEmail, sendMessageReplyEmail } = require('../_db/email');
 
 function safeCompare(a, b) {
   const bufA = Buffer.from(String(a));
@@ -625,7 +625,27 @@ async function handleMessages(req, res) {
     }
   }
 
-  res.setHeader('Allow', 'GET, PUT, DELETE');
+  if (req.method === 'POST') {
+    const { id, reply } = req.body || {};
+    if (!id || !reply || !reply.trim()) {
+      return res.status(400).json({ error: 'id and reply are required' });
+    }
+    try {
+      const rows = await sql`select * from contact_messages where id = ${id}`;
+      const message = rows[0];
+      if (!message) {
+        return res.status(404).json({ error: 'Message not found.' });
+      }
+      await sendMessageReplyEmail(message, reply.trim());
+      const updated = await sql`update contact_messages set is_read = true where id = ${id} returning *`;
+      return res.status(200).json({ message: updated[0] });
+    } catch (err) {
+      console.error('admin message reply failed', err);
+      return res.status(500).json({ error: 'Could not send reply email.' });
+    }
+  }
+
+  res.setHeader('Allow', 'GET, POST, PUT, DELETE');
   return res.status(405).json({ error: 'Method not allowed' });
 }
 

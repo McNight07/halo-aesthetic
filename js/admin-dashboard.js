@@ -955,11 +955,19 @@ async function loadMessages() {
               <div class="admin-row-meta" style="margin-top: 8px;">${escapeHtml(m.message)}</div>
             </div>
             <div class="admin-row-actions">
+              <button class="answer-message-btn" data-id="${m.id}" style="background: var(--gold); color: #1c1a14; border-color: var(--gold);">Answer</button>
               ${m.is_read ? "" : `<button class="mark-read-message-btn" data-id="${m.id}">Mark Read</button>`}
               <button class="delete-message-btn" data-id="${m.id}">Delete</button>
             </div>
           </div>
         `).join("");
+
+    document.querySelectorAll(".answer-message-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const message = data.messages.find((m) => String(m.id) === String(btn.dataset.id));
+        if (message) openMessageReplyModal(message);
+      });
+    });
 
     document.querySelectorAll(".mark-read-message-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -980,6 +988,41 @@ async function loadMessages() {
   } catch (err) {
     list.innerHTML = '<p class="admin-empty">Could not load messages.</p>';
   }
+}
+
+function openMessageReplyModal(message) {
+  document.getElementById("message-reply-id").value = message.id;
+  document.getElementById("message-reply-original").innerHTML =
+    `<strong>${escapeHtml(message.name)}</strong> (${escapeHtml(message.email)}) wrote:<br>${escapeHtml(message.message)}`;
+  document.getElementById("message-reply-text").value = "";
+  document.getElementById("message-reply-status").textContent = "";
+  document.getElementById("message-reply-modal").classList.add("open");
+}
+
+function setupMessageReplyModal() {
+  document.getElementById("message-reply-modal-close").addEventListener("click", () => {
+    document.getElementById("message-reply-modal").classList.remove("open");
+  });
+
+  document.getElementById("message-reply-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = document.getElementById("message-reply-status");
+    const id = document.getElementById("message-reply-id").value;
+    const reply = document.getElementById("message-reply-text").value.trim();
+    if (!reply) return;
+
+    status.textContent = "Sending...";
+    try {
+      await api("messages", { method: "POST", body: JSON.stringify({ id, reply }) });
+      status.textContent = "";
+      document.getElementById("message-reply-modal").classList.remove("open");
+      showToast("Reply sent");
+      loadMessages();
+      refreshMessagesBadge();
+    } catch (err) {
+      status.textContent = "Could not send reply. Please try again.";
+    }
+  });
 }
 
 /* ---------- Settings ---------- */
@@ -1056,6 +1099,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAppointmentModal();
   setupClientSearch();
   setupServiceModal();
+  setupMessageReplyModal();
   setupSettingsForms();
   setupCalendarNav();
   setupDashboardClicks();
