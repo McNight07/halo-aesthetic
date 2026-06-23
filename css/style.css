@@ -1067,6 +1067,38 @@ footer {
   display: flex;
 }
 
+.floating-feedback-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: var(--gold);
+  color: #1c1a14;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 13px 22px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(28, 26, 20, 0.28);
+  z-index: 1200;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.floating-feedback-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(28, 26, 20, 0.35);
+}
+
+@media (max-width: 640px) {
+  .floating-feedback-btn {
+    bottom: 18px;
+    right: 16px;
+    padding: 11px 18px;
+    font-size: 0.8rem;
+  }
+}
+
 .toast {
   position: fixed;
   bottom: 28px;
