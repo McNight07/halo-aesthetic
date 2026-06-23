@@ -3,6 +3,23 @@
   color: #f3efe7;
 }
 
+/* The site-wide h1-h4 default color is a near-black meant for light
+   backgrounds. Every heading on this dark admin page needs to override it. */
+.admin-body h1,
+.admin-body h2,
+.admin-body h3,
+.admin-body h4 {
+  color: #f3efe7;
+}
+
+.admin-body .form-group label {
+  color: #b8b0a0;
+}
+
+.admin-body .form-note {
+  color: #b8b0a0;
+}
+
 /* Login screen */
 .admin-login-screen {
   min-height: 100vh;
@@ -325,10 +342,38 @@
 .revenue-bar {
   fill: var(--gold-light);
   opacity: 0.85;
+  transition: opacity 0.15s;
 }
 
 .revenue-bar:hover {
   opacity: 1;
+}
+
+.revenue-bar-value {
+  fill: #f3efe7;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+.revenue-bar-date {
+  fill: #8a8377;
+  font-size: 10px;
+  font-family: var(--font-sans);
+}
+
+.revenue-baseline {
+  stroke: #2a2620;
+  stroke-width: 1;
+}
+
+.admin-stat-card-total {
+  border-color: var(--gold-light);
+  background: rgba(207, 161, 94, 0.08);
+}
+
+.admin-stat-card-total .admin-stat-value {
+  font-size: 2.1rem;
 }
 
 /* Responsive */

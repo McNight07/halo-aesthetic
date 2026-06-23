@@ -526,28 +526,57 @@ function setupServiceModal() {
 async function loadRevenue() {
   try {
     const data = await api("revenue");
+    document.getElementById("revenue-all-time").textContent = formatCents(data.allTimeCents);
     document.getElementById("revenue-this-month").textContent = formatCents(data.thisMonthCents);
     document.getElementById("revenue-last-month").textContent = formatCents(data.lastMonthCents);
 
     const chart = document.getElementById("revenue-chart");
-    if (data.daily.length === 0) {
-      chart.innerHTML = '<p class="admin-empty">No completed appointments in the last 30 days.</p>';
-      return;
+
+    // Always show all 30 days, even ones with no completed revenue, so the
+    // chart reads as a continuous timeline rather than only the active days.
+    const byDate = {};
+    data.daily.forEach((d) => { byDate[d.date] = d.cents; });
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      days.push({ date: key, cents: byDate[key] || 0 });
     }
 
-    const max = Math.max(...data.daily.map((d) => d.cents), 1);
-    const width = 760;
-    const height = 200;
-    const barWidth = width / data.daily.length - 4;
+    const max = Math.max(...days.map((d) => d.cents), 1);
+    const width = 900;
+    const height = 260;
+    const topPad = 30;
+    const bottomPad = 36;
+    const barAreaHeight = height - topPad - bottomPad;
+    const slot = width / days.length;
+    const barWidth = Math.max(slot - 6, 4);
 
-    const bars = data.daily.map((d, i) => {
-      const barHeight = (d.cents / max) * (height - 20);
-      const x = i * (width / data.daily.length);
-      const y = height - barHeight;
-      return `<rect class="revenue-bar" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}"><title>${d.date}: ${formatCents(d.cents)}</title></rect>`;
+    const bars = days.map((d, i) => {
+      const barHeight = d.cents > 0 ? (d.cents / max) * barAreaHeight : 0;
+      const x = i * slot + (slot - barWidth) / 2;
+      const y = topPad + barAreaHeight - barHeight;
+      const dayNum = parseInt(d.date.slice(8, 10), 10);
+      const showDateLabel = dayNum % 3 === 1 || i === days.length - 1;
+      const valueLabel = d.cents > 0
+        ? `<text class="revenue-bar-value" x="${x + barWidth / 2}" y="${y - 8}" text-anchor="middle">${formatCents(d.cents)}</text>`
+        : "";
+      const dateLabel = showDateLabel
+        ? `<text class="revenue-bar-date" x="${x + barWidth / 2}" y="${height - 14}" text-anchor="middle">${dayNum}</text>`
+        : "";
+      return `
+        <rect class="revenue-bar" x="${x}" y="${y}" width="${barWidth}" height="${Math.max(barHeight, d.cents > 0 ? 3 : 0)}" rx="3">
+          <title>${d.date}: ${formatCents(d.cents)}</title>
+        </rect>
+        ${valueLabel}
+        ${dateLabel}
+      `;
     }).join("");
 
-    chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 220px;">${bars}</svg>`;
+    const baseline = `<line x1="0" y1="${topPad + barAreaHeight}" x2="${width}" y2="${topPad + barAreaHeight}" class="revenue-baseline"/>`;
+
+    chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 260px;">${baseline}${bars}</svg>`;
   } catch (err) {
     showToast(err.message);
   }

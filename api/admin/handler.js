@@ -10,9 +10,14 @@ function safeCompare(a, b) {
 }
 
 function priceFromServiceLabel(label) {
-  // booking.service is stored like "Brow Threading — $35"; pull the trailing dollar amount.
-  const match = String(label).match(/\$(\d+)\s*$/);
-  return match ? parseInt(match[1], 10) * 100 : 0;
+  // booking.service is stored like "Brow Threading — $35" or, for multi-service
+  // bookings, "Back Wax — $55, Bikini Line Wax — $40" -- sum every $amount present.
+  const matches = String(label).matchAll(/\$(\d+)/g);
+  let totalCents = 0;
+  for (const match of matches) {
+    totalCents += parseInt(match[1], 10) * 100;
+  }
+  return totalCents;
 }
 
 async function handleLogin(req, res) {
@@ -75,8 +80,13 @@ async function handleOverview(req, res) {
 
     const serviceCounts = {};
     allBookings.forEach((b) => {
-      const name = String(b.service).replace(/\s*—\s*\$\d+\s*$/, '');
-      serviceCounts[name] = (serviceCounts[name] || 0) + 1;
+      String(b.service)
+        .split(',')
+        .map((part) => part.replace(/\s*—\s*\$\d+\s*$/, '').trim())
+        .filter(Boolean)
+        .forEach((name) => {
+          serviceCounts[name] = (serviceCounts[name] || 0) + 1;
+        });
     });
     const mostBooked = Object.entries(serviceCounts)
       .sort((a, b) => b[1] - a[1])
@@ -414,13 +424,17 @@ async function handleRevenue(req, res) {
         and preferred_date < date_trunc('month', current_date)
     `;
 
+    const allTimeRows = await sql`select service from bookings where status = 'completed'`;
+
     const thisMonthCents = thisMonthRows.reduce((sum, b) => sum + priceFromServiceLabel(b.service), 0);
     const lastMonthCents = lastMonthRows.reduce((sum, b) => sum + priceFromServiceLabel(b.service), 0);
+    const allTimeCents = allTimeRows.reduce((sum, b) => sum + priceFromServiceLabel(b.service), 0);
 
     return res.status(200).json({
       daily: Object.entries(byDay).map(([date, cents]) => ({ date, cents })).sort((a, b) => a.date.localeCompare(b.date)),
       thisMonthCents,
       lastMonthCents,
+      allTimeCents,
     });
   } catch (err) {
     console.error('admin revenue fetch failed', err);
