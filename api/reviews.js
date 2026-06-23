@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
       const rows = await sql`
         select client_name, rating, comment, created_at
         from reviews
-        where is_approved = true and is_featured = true
+        where is_approved = true
         order by created_at desc
         limit 6
       `;

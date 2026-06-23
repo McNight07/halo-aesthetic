@@ -35,9 +35,8 @@
       <button class="admin-nav-item" data-section="clients">Clients</button>
       <button class="admin-nav-item" data-section="services">Services</button>
       <button class="admin-nav-item" data-section="revenue">Revenue</button>
-      <button class="admin-nav-item" data-section="reviews">Reviews</button>
+      <button class="admin-nav-item" data-section="reviews">Reviews &amp; Feedback<span class="admin-nav-badge" id="feedback-unread-badge" style="display: none;"></span></button>
       <button class="admin-nav-item" data-section="messages">Messages<span class="admin-nav-badge" id="messages-unread-badge" style="display: none;"></span></button>
-      <button class="admin-nav-item" data-section="feedback">Feedback<span class="admin-nav-badge" id="feedback-unread-badge" style="display: none;"></span></button>
       <button class="admin-nav-item" data-section="settings">Settings</button>
     </nav>
     <div class="admin-sidebar-footer">
@@ -148,13 +147,13 @@
     </section>
 
     <section id="section-reviews" class="admin-section" style="display: none;">
-      <h2 class="admin-section-title">Reviews</h2>
+      <h2 class="admin-section-title">Reviews &amp; Feedback</h2>
       <div class="admin-section-header-row" style="margin-bottom: 10px;">
         <h3 class="admin-panel-title">Pending Approval</h3>
       </div>
       <div id="reviews-pending-list"></div>
       <div class="admin-section-header-row" style="margin: 36px 0 10px;">
-        <h3 class="admin-panel-title">Approved Reviews</h3>
+        <h3 class="admin-panel-title">Approved — Shown on Homepage</h3>
       </div>
       <div id="reviews-approved-list"></div>
     </section>
@@ -162,11 +161,6 @@
     <section id="section-messages" class="admin-section" style="display: none;">
       <h2 class="admin-section-title">Messages</h2>
       <div id="messages-list"></div>
-    </section>
-
-    <section id="section-feedback" class="admin-section" style="display: none;">
-      <h2 class="admin-section-title">Feedback</h2>
-      <div id="feedback-list"></div>
     </section>
 
     <section id="section-settings" class="admin-section" style="display: none;">

@@ -141,7 +141,6 @@ function loadSection(name) {
   if (name === "revenue") loadRevenue();
   if (name === "reviews") loadReviews();
   if (name === "messages") loadMessages();
-  if (name === "feedback") loadFeedback();
   if (name === "settings") loadSettings();
 }
 
@@ -860,70 +859,79 @@ async function openDayDetail(dateKey) {
 
 /* ---------- Reviews ---------- */
 
+function reviewFeedbackCard(item, { pending } = {}) {
+  const title = item.type === "review"
+    ? `${escapeHtml(item.name)} — ${"&#9733;".repeat(item.rating)}${"&#9734;".repeat(5 - item.rating)}`
+    : `${escapeHtml(item.name)}${item.is_read === false ? ' <span class="admin-pill active" style="margin-left: 8px;">New</span>' : ""}`;
+
+  const typeTag = `<span class="admin-pill" style="margin-left: 8px;">${item.type === "review" ? "Review" : "Feedback"}</span>`;
+
+  const actions = pending
+    ? `<button class="approve-item-btn" data-id="${item.id}" data-type="${item.type}">Approve</button>
+       <button class="delete-item-btn" data-id="${item.id}" data-type="${item.type}">Reject</button>`
+    : `<button class="approve-item-btn" data-id="${item.id}" data-type="${item.type}" data-unapprove="true">Unapprove</button>
+       <button class="delete-item-btn" data-id="${item.id}" data-type="${item.type}">Delete</button>`;
+
+  return `
+    <div class="admin-row-card" style="cursor: default;">
+      <div class="admin-row-main">
+        <h4>${title}${typeTag}</h4>
+        <div class="admin-row-meta">${escapeHtml(item.message)}</div>
+      </div>
+      <div class="admin-row-actions">${actions}</div>
+    </div>
+  `;
+}
+
 async function loadReviews() {
   const pendingList = document.getElementById("reviews-pending-list");
   const approvedList = document.getElementById("reviews-approved-list");
   try {
-    const data = await api("reviews");
-    const pending = data.reviews.filter((r) => !r.is_approved);
-    const approved = data.reviews.filter((r) => r.is_approved);
+    const [reviewsData, feedbackData] = await Promise.all([api("reviews"), api("feedback")]);
+
+    const reviews = reviewsData.reviews.map((r) => ({
+      id: r.id, type: "review", name: r.client_name, message: r.comment, rating: r.rating,
+      is_approved: r.is_approved, created_at: r.created_at,
+    }));
+    const feedback = feedbackData.feedback.map((f) => ({
+      id: f.id, type: "feedback", name: f.name, message: f.message,
+      is_approved: f.is_approved, is_read: f.is_read, created_at: f.created_at,
+    }));
+
+    const all = [...reviews, ...feedback].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const pending = all.filter((item) => !item.is_approved);
+    const approved = all.filter((item) => item.is_approved);
 
     pendingList.innerHTML = pending.length === 0
-      ? '<p class="admin-empty">No reviews waiting for approval.</p>'
-      : pending.map((r) => `
-          <div class="admin-row-card" style="cursor: default;">
-            <div class="admin-row-main">
-              <h4>${escapeHtml(r.client_name)} — ${"&#9733;".repeat(r.rating)}${"&#9734;".repeat(5 - r.rating)}</h4>
-              <div class="admin-row-meta">${escapeHtml(r.comment)}</div>
-            </div>
-            <div class="admin-row-actions">
-              <button class="approve-review-btn" data-id="${r.id}">Approve</button>
-              <button class="delete-review-btn" data-id="${r.id}">Reject</button>
-            </div>
-          </div>
-        `).join("");
+      ? '<p class="admin-empty">Nothing waiting for approval.</p>'
+      : pending.map((item) => reviewFeedbackCard(item, { pending: true })).join("");
 
     approvedList.innerHTML = approved.length === 0
-      ? '<p class="admin-empty">No approved reviews yet.</p>'
-      : approved.map((r) => `
-          <div class="admin-row-card" style="cursor: default;">
-            <div class="admin-row-main">
-              <h4>${escapeHtml(r.client_name)} — ${"&#9733;".repeat(r.rating)}${"&#9734;".repeat(5 - r.rating)}</h4>
-              <div class="admin-row-meta">${escapeHtml(r.comment)}</div>
-            </div>
-            <div class="admin-row-actions">
-              <button class="feature-review-btn" data-id="${r.id}" data-featured="${r.is_featured}">${r.is_featured ? "Unfeature" : "Feature"}</button>
-              <button class="delete-review-btn" data-id="${r.id}">Delete</button>
-            </div>
-          </div>
-        `).join("");
+      ? '<p class="admin-empty">Nothing approved yet.</p>'
+      : approved.map((item) => reviewFeedbackCard(item, { pending: false })).join("");
 
-    document.querySelectorAll(".approve-review-btn").forEach((btn) => {
+    document.querySelectorAll(".approve-item-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        await api("reviews", { method: "PUT", body: JSON.stringify({ id: btn.dataset.id, isApproved: true }) });
-        showToast("Review approved");
+        const action = btn.dataset.type === "review" ? "reviews" : "feedback";
+        const isApproved = !btn.dataset.unapprove;
+        await api(action, { method: "PUT", body: JSON.stringify({ id: btn.dataset.id, isApproved }) });
+        showToast(isApproved ? "Approved" : "Unapproved");
         loadReviews();
+        refreshFeedbackBadge();
       });
     });
 
-    document.querySelectorAll(".feature-review-btn").forEach((btn) => {
+    document.querySelectorAll(".delete-item-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        const newFeatured = btn.dataset.featured !== "true";
-        await api("reviews", { method: "PUT", body: JSON.stringify({ id: btn.dataset.id, isFeatured: newFeatured }) });
-        showToast(newFeatured ? "Featured" : "Unfeatured");
-        loadReviews();
-      });
-    });
-
-    document.querySelectorAll(".delete-review-btn").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        await api(`reviews?id=${btn.dataset.id}`, { method: "DELETE" });
+        const action = btn.dataset.type === "review" ? "reviews" : "feedback";
+        await api(`${action}?id=${btn.dataset.id}`, { method: "DELETE" });
         showToast("Removed");
         loadReviews();
+        refreshFeedbackBadge();
       });
     });
   } catch (err) {
-    pendingList.innerHTML = '<p class="admin-empty">Could not load reviews.</p>';
+    pendingList.innerHTML = '<p class="admin-empty">Could not load reviews and feedback.</p>';
   }
 }
 
@@ -1004,58 +1012,6 @@ async function refreshFeedbackBadge() {
     badge.style.display = unread > 0 ? "inline-flex" : "none";
   } catch (err) {
     // ignore
-  }
-}
-
-async function loadFeedback() {
-  const list = document.getElementById("feedback-list");
-  try {
-    const data = await api("feedback");
-
-    list.innerHTML = data.feedback.length === 0
-      ? '<p class="admin-empty">No feedback yet.</p>'
-      : data.feedback.map((f) => `
-          <div class="admin-row-card" style="cursor: default; ${f.is_read ? "" : "border-left: 3px solid var(--gold);"}">
-            <div class="admin-row-main">
-              <h4>${escapeHtml(f.name)} ${f.is_read ? "" : '<span class="admin-pill active" style="margin-left: 8px;">New</span>'}${f.is_approved ? ' <span class="admin-pill active" style="margin-left: 8px; background: var(--gold);">Approved</span>' : ""}</h4>
-              <div class="admin-row-meta">${f.email ? escapeHtml(f.email) + " &middot; " : ""}${formatDateTime(f.created_at)}</div>
-              <div class="admin-row-meta" style="margin-top: 8px;">${escapeHtml(f.message)}</div>
-            </div>
-            <div class="admin-row-actions">
-              <button class="approve-feedback-btn" data-id="${f.id}" data-approved="${f.is_approved}" style="background: var(--gold); color: #1c1a14; border-color: var(--gold);">${f.is_approved ? "Unapprove" : "Approve"}</button>
-              ${f.is_read ? "" : `<button class="mark-read-feedback-btn" data-id="${f.id}">Mark Read</button>`}
-              <button class="delete-feedback-btn" data-id="${f.id}">Delete</button>
-            </div>
-          </div>
-        `).join("");
-
-    document.querySelectorAll(".approve-feedback-btn").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const newApproved = btn.dataset.approved !== "true";
-        await api("feedback", { method: "PUT", body: JSON.stringify({ id: btn.dataset.id, isApproved: newApproved }) });
-        showToast(newApproved ? "Feedback approved" : "Feedback unapproved");
-        loadFeedback();
-      });
-    });
-
-    document.querySelectorAll(".mark-read-feedback-btn").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        await api("feedback", { method: "PUT", body: JSON.stringify({ id: btn.dataset.id, isRead: true }) });
-        loadFeedback();
-        refreshFeedbackBadge();
-      });
-    });
-
-    document.querySelectorAll(".delete-feedback-btn").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        await api(`feedback?id=${btn.dataset.id}`, { method: "DELETE" });
-        showToast("Feedback deleted");
-        loadFeedback();
-        refreshFeedbackBadge();
-      });
-    });
-  } catch (err) {
-    list.innerHTML = '<p class="admin-empty">Could not load feedback.</p>';
   }
 }
 

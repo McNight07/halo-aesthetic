@@ -350,11 +350,16 @@ async function loadGuestFeedback() {
 
   let items = FALLBACK_GUEST_FEEDBACK;
   try {
-    const response = await fetch("/api/feedback");
-    if (response.ok) {
-      const { feedback } = await response.json();
-      if (Array.isArray(feedback) && feedback.length > 0) items = feedback;
-    }
+    const [feedbackRes, reviewsRes] = await Promise.all([
+      fetch("/api/feedback").then((r) => (r.ok ? r.json() : { feedback: [] })).catch(() => ({ feedback: [] })),
+      fetch("/api/reviews").then((r) => (r.ok ? r.json() : { reviews: [] })).catch(() => ({ reviews: [] })),
+    ]);
+
+    const fromFeedback = (feedbackRes.feedback || []).map((f) => ({ name: f.name, message: f.message, created_at: f.created_at }));
+    const fromReviews = (reviewsRes.reviews || []).map((r) => ({ name: r.client_name, message: r.comment, created_at: r.created_at }));
+    const combined = [...fromFeedback, ...fromReviews].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    if (combined.length > 0) items = combined;
   } catch (err) {
     // fall back to default testimonials
   }
