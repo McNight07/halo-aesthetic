@@ -105,9 +105,11 @@ function setupAddToCartButtons() {
     btn.addEventListener("click", () => {
       const name = btn.dataset.name;
       const priceCents = parseInt(btn.dataset.priceCents, 10);
-      addToCart({ name, price_cents: priceCents });
-      flashAddedButton(btn);
-      showToast(`${name} added to cart`);
+      const added = addToCart({ name, price_cents: priceCents });
+      if (added) {
+        flashAddedButton(btn);
+        showToast(`${name} added to cart`);
+      }
     });
   });
 }
@@ -180,6 +182,7 @@ function getSelectedServices() {
   const container = document.getElementById("b-service-checkboxes");
   if (!container) return [];
   return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map((cb) => ({
+    id: cb.id,
     name: cb.dataset.name,
     price_cents: parseInt(cb.dataset.priceCents, 10),
   }));
@@ -201,10 +204,37 @@ function updateServiceCheckboxLimit() {
 
   if (countLabel) countLabel.textContent = `(${checkedCount}/${MAX_SERVICES_PER_BOOKING} selected)`;
 
+  const selected = getSelectedServices();
+  const totalCents = selected.reduce((sum, s) => sum + s.price_cents, 0);
+
   const subtotalEl = document.getElementById("b-service-subtotal");
   if (subtotalEl) {
-    const totalCents = getSelectedServices().reduce((sum, s) => sum + s.price_cents, 0);
     subtotalEl.textContent = `$${(totalCents / 100).toFixed(0)}`;
+  }
+
+  const summaryEl = document.getElementById("b-service-summary");
+  if (summaryEl) {
+    summaryEl.innerHTML = selected
+      .map(
+        (s) => `
+          <div class="booking-summary-row">
+            <span class="booking-summary-name">${escapeHtml(s.name)}</span>
+            <span class="booking-summary-price">$${(s.price_cents / 100).toFixed(0)}</span>
+            <button type="button" class="booking-summary-remove" data-checkbox-id="${s.id}" aria-label="Remove ${escapeHtml(s.name)}">&times;</button>
+          </div>
+        `
+      )
+      .join("");
+
+    summaryEl.querySelectorAll(".booking-summary-remove").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const checkbox = document.getElementById(btn.dataset.checkboxId);
+        if (checkbox) {
+          checkbox.checked = false;
+          updateServiceCheckboxLimit();
+        }
+      });
+    });
   }
 }
 
@@ -295,10 +325,12 @@ function openServiceModal(service) {
 
   const addBtn = document.getElementById("modal-add-to-cart");
   addBtn.onclick = () => {
-    addToCart(service);
-    flashAddedButton(addBtn);
-    showToast(`${service.name} added to cart`);
-    setTimeout(closeServiceModal, 500);
+    const added = addToCart(service);
+    if (added) {
+      flashAddedButton(addBtn);
+      showToast(`${service.name} added to cart`);
+      setTimeout(closeServiceModal, 500);
+    }
   };
 
   modal.classList.add("open");
@@ -343,6 +375,12 @@ function saveCart(cart) {
 
 function addToCart(service) {
   const cart = getCart();
+  const currentCount = cart.reduce((sum, item) => sum + item.qty, 0);
+  if (currentCount >= MAX_SERVICES_PER_BOOKING) {
+    showToast(`Only ${MAX_SERVICES_PER_BOOKING} services per appointment are accepted`);
+    return false;
+  }
+
   const existing = cart.find((item) => item.name === service.name);
   if (existing) {
     existing.qty += 1;
@@ -356,6 +394,7 @@ function addToCart(service) {
   }
   saveCart(cart);
   animateCartIcon();
+  return true;
 }
 
 function removeFromCart(name) {

@@ -669,6 +669,45 @@ section { padding: 90px 0; }
   gap: 20px;
 }
 
+.booking-summary {
+  margin-bottom: 18px;
+}
+
+.booking-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+
+.booking-summary-row .booking-summary-name {
+  flex: 1;
+}
+
+.booking-summary-row .booking-summary-price {
+  color: var(--gold);
+  font-family: var(--font-serif);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.booking-summary-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0 0 6px;
+}
+
+.booking-summary-remove:hover {
+  color: #b3463c;
+}
+
 .booking-submit-row {
   display: flex;
   align-items: center;
