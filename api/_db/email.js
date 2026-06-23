@@ -43,9 +43,19 @@ function baseLayout({ heading, intro, details, footerNote }) {
   `;
 }
 
-function detailsTable(booking) {
+function detailsTable(booking, { includeSpecialist = false } = {}) {
+  const specialistRow = includeSpecialist
+    ? `
+      <tr>
+        <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; color:#6b6558; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Specialist</td>
+        <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; text-align:right; color:#1c1a14; font-size:14px;">Sofia Zamani</td>
+      </tr>
+    `
+    : '';
+
   return `
     <table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-family:Georgia,serif;">
+      ${specialistRow}
       <tr>
         <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; color:#6b6558; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Service${booking.service.includes(',') ? 's' : ''}</td>
         <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; text-align:right; color:#1c1a14; font-size:14px;">${booking.service}</td>
@@ -59,6 +69,19 @@ function detailsTable(booking) {
         <td style="padding:10px 0; text-align:right; color:#1c1a14; font-size:14px;">${formatTime(booking.preferred_time)}</td>
       </tr>
     </table>
+  `;
+}
+
+const STUDIO_ADDRESS = '800 N Pearl Street, Denver, CO 80203, USA';
+const STUDIO_MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(STUDIO_ADDRESS)}`;
+
+function studioLocationBlock() {
+  return `
+    <div style="margin-top:24px; padding:18px 20px; background:#f6f1e3; border:1px solid #e3dcc7; border-radius:10px;">
+      <div style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:#6b6558; margin-bottom:6px;">Studio Address</div>
+      <div style="font-size:15px; color:#1c1a14; margin-bottom:14px;">${STUDIO_ADDRESS}</div>
+      <a href="${STUDIO_MAPS_URL}" style="display:inline-block; background:#1c1a14; color:#f6f1e3; text-decoration:none; font-family:Georgia,serif; font-size:13px; letter-spacing:0.5px; padding:10px 20px; border-radius:999px;">View on Google Maps</a>
+    </div>
   `;
 }
 
@@ -82,8 +105,8 @@ function buildEmail(type, booking) {
       subject: 'Your appointment is confirmed — Halo Aesthetic',
       html: baseLayout({
         heading: `You're all set, ${firstName}`,
-        intro: `Great news — your appointment has been confirmed. The studio address will be shared with you directly ahead of your visit.`,
-        details: detailsTable(booking),
+        intro: `Great news — your appointment has been confirmed. Here are the details for your visit.`,
+        details: detailsTable(booking, { includeSpecialist: true }) + studioLocationBlock(),
         footerNote: `Need to reschedule or have a question? Just reply to this email or call (303) 727-0746.`,
       }),
     };
