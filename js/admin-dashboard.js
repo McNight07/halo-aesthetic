@@ -654,6 +654,9 @@ async function loadRevenue() {
     document.getElementById("revenue-all-time").textContent = formatCents(data.allTimeCents);
     document.getElementById("revenue-this-month").textContent = formatCents(data.thisMonthCents);
     document.getElementById("revenue-last-month").textContent = formatCents(data.lastMonthCents);
+    document.getElementById("revenue-all-time-count").textContent = `${data.allTimeCount} appointment${data.allTimeCount === 1 ? "" : "s"}`;
+    document.getElementById("revenue-this-month-count").textContent = `${data.thisMonthCount} appointment${data.thisMonthCount === 1 ? "" : "s"}`;
+    document.getElementById("revenue-last-month-count").textContent = `${data.lastMonthCount} appointment${data.lastMonthCount === 1 ? "" : "s"}`;
   } catch (err) {
     showToast(err.message);
   }
@@ -699,19 +702,21 @@ async function openPeriodDetail(label, from, to) {
   modal.classList.add("open");
 
   try {
-    const params = new URLSearchParams({ status: "completed" });
+    const params = new URLSearchParams();
     if (from) params.set("from", from);
     if (to) params.set("to", to);
     const data = await api(`bookings?${params.toString()}`);
     const bookings = data.bookings;
 
     if (bookings.length === 0) {
-      summary.textContent = "No completed appointments in this period.";
+      summary.textContent = "No appointments in this period.";
       return;
     }
 
-    const totalCents = bookings.reduce((sum, b) => sum + parseServiceLine(b.service).totalCents, 0);
-    summary.textContent = `${bookings.length} completed appointment${bookings.length === 1 ? "" : "s"} · ${formatCents(totalCents)} total`;
+    const completedCents = bookings
+      .filter((b) => b.status === "completed")
+      .reduce((sum, b) => sum + parseServiceLine(b.service).totalCents, 0);
+    summary.textContent = `${bookings.length} appointment${bookings.length === 1 ? "" : "s"} · ${formatCents(completedCents)} completed revenue`;
 
     list.innerHTML = bookings
       .map((b) => {

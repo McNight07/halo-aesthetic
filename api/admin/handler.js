@@ -500,26 +500,28 @@ async function handleRevenue(req, res) {
     const sql = getSql();
 
     const thisMonthRows = await sql`
-      select service from bookings
-      where status = 'completed' and preferred_date >= date_trunc('month', current_date)
+      select service, status from bookings
+      where preferred_date >= date_trunc('month', current_date)
     `;
     const lastMonthRows = await sql`
-      select service from bookings
-      where status = 'completed'
-        and preferred_date >= date_trunc('month', current_date - interval '1 month')
+      select service, status from bookings
+      where preferred_date >= date_trunc('month', current_date - interval '1 month')
         and preferred_date < date_trunc('month', current_date)
     `;
 
-    const allTimeRows = await sql`select service from bookings where status = 'completed'`;
+    const allTimeRows = await sql`select service, status from bookings`;
 
-    const thisMonthCents = thisMonthRows.reduce((sum, b) => sum + priceFromServiceLabel(b.service), 0);
-    const lastMonthCents = lastMonthRows.reduce((sum, b) => sum + priceFromServiceLabel(b.service), 0);
-    const allTimeCents = allTimeRows.reduce((sum, b) => sum + priceFromServiceLabel(b.service), 0);
+    const revenueOf = (rows) => rows
+      .filter((b) => b.status === 'completed')
+      .reduce((sum, b) => sum + priceFromServiceLabel(b.service), 0);
 
     return res.status(200).json({
-      thisMonthCents,
-      lastMonthCents,
-      allTimeCents,
+      thisMonthCents: revenueOf(thisMonthRows),
+      lastMonthCents: revenueOf(lastMonthRows),
+      allTimeCents: revenueOf(allTimeRows),
+      thisMonthCount: thisMonthRows.length,
+      lastMonthCount: lastMonthRows.length,
+      allTimeCount: allTimeRows.length,
     });
   } catch (err) {
     console.error('admin revenue fetch failed', err);
