@@ -1469,40 +1469,57 @@ async function loadNotifications() {
     const items = [
       ...messagesData.messages.filter((m) => !m.is_read).map((m) => ({
         type: "Message", section: "messages", created_at: m.created_at,
-        text: `${m.name}: ${m.message}`,
+        text: `${m.name}: ${m.message}`, id: m.id, kind: "message",
       })),
       ...feedbackData.feedback.filter((f) => !f.is_read).map((f) => ({
         type: "Feedback", section: "reviews", created_at: f.created_at,
-        text: `${f.name}: ${f.message}`,
+        text: `${f.name}: ${f.message}`, id: f.id, kind: "feedback",
       })),
       ...bookingsData.bookings.map((b) => ({
         type: "Booking Request", section: "appointments", created_at: b.created_at || `${b.preferred_date}T${b.preferred_time}`,
-        text: `${b.name} requested ${b.service}`,
+        text: `${b.name} requested ${b.service}`, id: b.id, kind: "booking",
       })),
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    badge.textContent = items.length;
-    badge.classList.toggle("visible", items.length > 0);
-
-    list.innerHTML = items.length === 0
-      ? '<div class="notif-empty">You\'re all caught up.</div>'
-      : items.slice(0, 20).map((item, i) => `
-          <button class="notif-item" data-index="${i}">
-            <div class="notif-item-type">${escapeHtml(item.type)}</div>
-            <div class="notif-item-text">${escapeHtml(item.text.slice(0, 90))}${item.text.length > 90 ? "…" : ""}</div>
-          </button>
-        `).join("");
-
-    list.querySelectorAll(".notif-item").forEach((btn, i) => {
-      btn.addEventListener("click", () => {
-        const section = items[i].section;
-        document.getElementById("notif-dropdown").classList.remove("open");
-        document.querySelector(`.admin-nav-item[data-section="${section}"]`).click();
-      });
-    });
+    renderNotifList(items);
   } catch (err) {
     list.innerHTML = '<div class="notif-empty">Could not load notifications.</div>';
   }
+}
+
+function renderNotifList(items) {
+  const list = document.getElementById("notif-list");
+  const badge = document.getElementById("notif-bell-badge");
+  if (!list || !badge) return;
+
+  badge.textContent = items.length;
+  badge.classList.toggle("visible", items.length > 0);
+
+  list.innerHTML = items.length === 0
+    ? '<div class="notif-empty">You\'re all caught up.</div>'
+    : items.slice(0, 20).map((item, i) => `
+        <button class="notif-item" data-index="${i}">
+          <div class="notif-item-type">${escapeHtml(item.type)}</div>
+          <div class="notif-item-text">${escapeHtml(item.text.slice(0, 90))}${item.text.length > 90 ? "…" : ""}</div>
+        </button>
+      `).join("");
+
+  list.querySelectorAll(".notif-item").forEach((btn, i) => {
+    btn.addEventListener("click", async () => {
+      const item = items[i];
+      document.getElementById("notif-dropdown").classList.remove("open");
+      document.querySelector(`.admin-nav-item[data-section="${item.section}"]`).click();
+
+      if (item.kind === "message") {
+        api("messages", { method: "PUT", body: JSON.stringify({ id: item.id, isRead: true }) }).catch(() => {});
+      } else if (item.kind === "feedback") {
+        api("feedback", { method: "PUT", body: JSON.stringify({ id: item.id, isRead: true }) }).catch(() => {});
+      }
+
+      items.splice(i, 1);
+      renderNotifList(items);
+    });
+  });
 }
 
 function setupNotifDropdown() {
