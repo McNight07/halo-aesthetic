@@ -35,8 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = await response.json();
 
         if (response.ok) {
-          status.textContent = "Thank you — your request has been received. We'll confirm by email shortly.";
-          status.className = "success";
+          status.textContent = "";
+          status.className = "";
+          showBookingSuccessModal(data.name);
           bookingForm.reset();
           updateServiceCheckboxLimit();
           localStorage.removeItem(CART_KEY);
@@ -96,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadServicesIntoSelect().then(prefillBookingFromCart);
   loadServicesIntoPage();
   setupServiceModal();
+  setupBookingSuccessModal();
   setupAddToCartButtons();
   updateCartBadge();
 });
@@ -351,6 +353,26 @@ function setupServiceModal() {
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeServiceModal();
+  });
+}
+
+/* ---------- Booking success modal ---------- */
+
+function showBookingSuccessModal(name) {
+  const modal = document.getElementById("booking-success-modal");
+  if (!modal) return;
+  const firstName = (name || "").split(" ")[0];
+  const heading = document.getElementById("booking-success-heading");
+  heading.textContent = firstName ? `Thank You, ${firstName}` : "Thank You";
+  modal.classList.add("open");
+}
+
+function setupBookingSuccessModal() {
+  const modal = document.getElementById("booking-success-modal");
+  if (!modal) return;
+  document.getElementById("booking-success-close").addEventListener("click", () => modal.classList.remove("open"));
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.remove("open");
   });
 }
 
