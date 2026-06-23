@@ -77,6 +77,7 @@ function showApp() {
   loadSection("dashboard");
   refreshMessagesBadge();
   refreshFeedbackBadge();
+  loadNotifications();
 }
 
 function setupLogin() {
@@ -135,7 +136,7 @@ function loadSection(name) {
   document.getElementById(`section-${name}`).style.display = "block";
 
   if (name === "dashboard") loadDashboard();
-  if (name === "appointments") loadAppointments();
+  if (name === "appointments") { loadAppointments(); loadWeeklyCalendar(); }
   if (name === "clients") loadClients();
   if (name === "services") loadServicesAdmin();
   if (name === "revenue") loadRevenue();
@@ -334,6 +335,92 @@ async function loadAppointments() {
   } catch (err) {
     list.innerHTML = '<p class="admin-empty">Could not load appointments.</p>';
   }
+}
+
+/* ---------- Weekly appointments calendar ---------- */
+
+const WEEKDAY_FULL_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+function getMonday(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+let weekViewStart = getMonday(new Date());
+
+function dateKey(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+async function loadWeeklyCalendar() {
+  const grid = document.getElementById("weekly-calendar");
+  const label = document.getElementById("week-range-label");
+  if (!grid || !label) return;
+
+  const weekEnd = new Date(weekViewStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  label.textContent = `${formatDate(dateKey(weekViewStart))} – ${formatDate(dateKey(weekEnd))}`;
+
+  let bookings = [];
+  try {
+    const data = await api(`bookings?from=${dateKey(weekViewStart)}&to=${dateKey(weekEnd)}`);
+    bookings = data.bookings || [];
+  } catch (err) {
+    grid.innerHTML = '<p class="admin-empty">Could not load this week\'s appointments.</p>';
+    return;
+  }
+
+  const todayKey = dateKey(new Date());
+
+  grid.innerHTML = WEEKDAY_FULL_NAMES.map((dayName, i) => {
+    const day = new Date(weekViewStart);
+    day.setDate(day.getDate() + i);
+    const key = dateKey(day);
+    const dayBookings = bookings
+      .filter((b) => b.preferred_date.slice(0, 10) === key)
+      .sort((a, b) => a.preferred_time.localeCompare(b.preferred_time));
+
+    const apptsHtml = dayBookings.length === 0
+      ? '<div class="weekly-day-empty">No appointments</div>'
+      : dayBookings.map((b) => `
+          <div class="weekly-appt" data-id="${b.id}">
+            <span class="weekly-appt-time">${formatTime(b.preferred_time)}</span>
+            <span class="weekly-appt-name">${escapeHtml(b.name)}</span>
+          </div>
+        `).join("");
+
+    return `
+      <div class="weekly-day ${key === todayKey ? "today" : ""}">
+        <div class="weekly-day-header">
+          <div class="weekly-day-name">${dayName.slice(0, 3)}</div>
+          <div class="weekly-day-date">${day.getDate()}</div>
+        </div>
+        ${apptsHtml}
+      </div>
+    `;
+  }).join("");
+
+  grid.querySelectorAll(".weekly-appt").forEach((el) => {
+    el.addEventListener("click", () => {
+      const booking = bookings.find((b) => String(b.id) === el.dataset.id);
+      if (booking) openAppointmentModal(booking);
+    });
+  });
+}
+
+function setupWeekNav() {
+  document.getElementById("week-prev-btn").addEventListener("click", () => {
+    weekViewStart.setDate(weekViewStart.getDate() - 7);
+    loadWeeklyCalendar();
+  });
+  document.getElementById("week-next-btn").addEventListener("click", () => {
+    weekViewStart.setDate(weekViewStart.getDate() + 7);
+    loadWeeklyCalendar();
+  });
 }
 
 function setupAppointmentFilters() {
@@ -1015,6 +1102,78 @@ async function refreshFeedbackBadge() {
   }
 }
 
+/* ---------- Notifications ---------- */
+
+async function loadNotifications() {
+  const list = document.getElementById("notif-list");
+  const badge = document.getElementById("notif-bell-badge");
+  if (!list || !badge) return;
+
+  try {
+    const [messagesData, feedbackData, bookingsData] = await Promise.all([
+      api("messages"),
+      api("feedback"),
+      api("bookings?status=pending"),
+    ]);
+
+    const items = [
+      ...messagesData.messages.filter((m) => !m.is_read).map((m) => ({
+        type: "Message", section: "messages", created_at: m.created_at,
+        text: `${m.name}: ${m.message}`,
+      })),
+      ...feedbackData.feedback.filter((f) => !f.is_read).map((f) => ({
+        type: "Feedback", section: "reviews", created_at: f.created_at,
+        text: `${f.name}: ${f.message}`,
+      })),
+      ...bookingsData.bookings.map((b) => ({
+        type: "Booking Request", section: "appointments", created_at: b.created_at || `${b.preferred_date}T${b.preferred_time}`,
+        text: `${b.name} requested ${b.service}`,
+      })),
+    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    badge.textContent = items.length;
+    badge.classList.toggle("visible", items.length > 0);
+
+    list.innerHTML = items.length === 0
+      ? '<div class="notif-empty">You\'re all caught up.</div>'
+      : items.slice(0, 20).map((item, i) => `
+          <button class="notif-item" data-index="${i}">
+            <div class="notif-item-type">${escapeHtml(item.type)}</div>
+            <div class="notif-item-text">${escapeHtml(item.text.slice(0, 90))}${item.text.length > 90 ? "…" : ""}</div>
+          </button>
+        `).join("");
+
+    list.querySelectorAll(".notif-item").forEach((btn, i) => {
+      btn.addEventListener("click", () => {
+        const section = items[i].section;
+        document.getElementById("notif-dropdown").classList.remove("open");
+        document.querySelector(`.admin-nav-item[data-section="${section}"]`).click();
+      });
+    });
+  } catch (err) {
+    list.innerHTML = '<div class="notif-empty">Could not load notifications.</div>';
+  }
+}
+
+function setupNotifDropdown() {
+  const bellBtn = document.getElementById("notif-bell-btn");
+  const dropdown = document.getElementById("notif-dropdown");
+  if (!bellBtn || !dropdown) return;
+
+  bellBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const opening = !dropdown.classList.contains("open");
+    dropdown.classList.toggle("open");
+    if (opening) loadNotifications();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!dropdown.contains(e.target) && e.target !== bellBtn) {
+      dropdown.classList.remove("open");
+    }
+  });
+}
+
 function openMessageReplyModal(message) {
   document.getElementById("message-reply-id").value = message.id;
   document.getElementById("message-reply-original").innerHTML =
@@ -1121,6 +1280,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupLogin();
   setupSidebar();
   setupAppointmentFilters();
+  setupWeekNav();
+  setupNotifDropdown();
   setupAppointmentModal();
   setupClientSearch();
   setupServiceModal();

@@ -47,6 +47,19 @@
 
   <main class="admin-main">
 
+    <div class="admin-topbar">
+      <div class="notif-bell-wrap">
+        <button class="notif-bell-btn" id="notif-bell-btn" aria-label="Notifications">
+          &#128276;
+          <span class="notif-bell-badge" id="notif-bell-badge"></span>
+        </button>
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-dropdown-header">Notifications</div>
+          <div id="notif-list"></div>
+        </div>
+      </div>
+    </div>
+
     <section id="section-dashboard" class="admin-section">
       <h2 class="admin-section-title">Dashboard</h2>
       <div class="admin-stat-grid">
@@ -84,6 +97,15 @@
       <div class="admin-section-header-row">
         <h2 class="admin-section-title">Appointments</h2>
         <button class="btn btn-solid" id="new-appointment-btn">+ New Appointment</button>
+      </div>
+
+      <div class="admin-panel" style="margin-bottom: 28px;">
+        <div class="admin-section-header-row" style="margin-bottom: 18px;">
+          <button class="btn" id="week-prev-btn">&larr;</button>
+          <h3 class="admin-panel-title" id="week-range-label" style="margin: 0;">This Week</h3>
+          <button class="btn" id="week-next-btn">&rarr;</button>
+        </div>
+        <div id="weekly-calendar" class="weekly-calendar"></div>
       </div>
 
       <div class="admin-filter-row">
