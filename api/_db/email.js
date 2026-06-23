@@ -254,7 +254,7 @@ async function sendContactNotificationEmail(message) {
   }
 }
 
-async function sendMessageReplyEmail(message, replyText) {
+async function sendMessageReplyEmail(message, replyText, attachment) {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY not set — skipping email send');
     return;
@@ -282,6 +282,7 @@ async function sendMessageReplyEmail(message, replyText) {
       replyTo: REPLY_TO_ADDRESS,
       subject: `Re: your message to Halo Aesthetic`,
       html,
+      ...(attachment ? { attachments: [{ filename: attachment.filename, content: attachment.content }] } : {}),
     });
   } catch (err) {
     console.error(`Failed to send reply email for message ${message.id}:`, err);

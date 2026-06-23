@@ -1547,12 +1547,42 @@ function openMessageReplyModal(message) {
     `<strong>${escapeHtml(message.name)}</strong> (${escapeHtml(message.email)}) wrote:<br>${escapeHtml(message.message)}`;
   document.getElementById("message-reply-text").value = "";
   document.getElementById("message-reply-status").textContent = "";
+  document.getElementById("message-reply-file").value = "";
+  document.getElementById("message-reply-file-name").textContent = "";
   document.getElementById("message-reply-modal").classList.add("open");
+}
+
+const MAX_REPLY_ATTACHMENT_BYTES = 3 * 1024 * 1024;
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 function setupMessageReplyModal() {
   document.getElementById("message-reply-modal-close").addEventListener("click", () => {
     document.getElementById("message-reply-modal").classList.remove("open");
+  });
+
+  const fileInput = document.getElementById("message-reply-file");
+  document.getElementById("message-reply-file-btn").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    const nameEl = document.getElementById("message-reply-file-name");
+    const file = fileInput.files[0];
+    if (!file) {
+      nameEl.textContent = "";
+      return;
+    }
+    if (file.size > MAX_REPLY_ATTACHMENT_BYTES) {
+      nameEl.textContent = "File too large (max 3MB)";
+      fileInput.value = "";
+      return;
+    }
+    nameEl.textContent = file.name;
   });
 
   document.getElementById("message-reply-form").addEventListener("submit", async (e) => {
@@ -1564,7 +1594,12 @@ function setupMessageReplyModal() {
 
     status.textContent = "Sending...";
     try {
-      await api("messages", { method: "POST", body: JSON.stringify({ id, reply }) });
+      const body = { id, reply };
+      const file = fileInput.files[0];
+      if (file) {
+        body.attachment = { filename: file.name, content: await fileToBase64(file) };
+      }
+      await api("messages", { method: "POST", body: JSON.stringify(body) });
       status.textContent = "";
       document.getElementById("message-reply-modal").classList.remove("open");
       showToast("Reply sent");

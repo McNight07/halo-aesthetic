@@ -788,9 +788,12 @@ async function handleMessages(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { id, reply } = req.body || {};
+    const { id, reply, attachment } = req.body || {};
     if (!id || !reply || !reply.trim()) {
       return res.status(400).json({ error: 'id and reply are required' });
+    }
+    if (attachment && (!attachment.filename || !attachment.content)) {
+      return res.status(400).json({ error: 'Invalid attachment.' });
     }
     try {
       const rows = await sql`select * from contact_messages where id = ${id}`;
@@ -798,7 +801,7 @@ async function handleMessages(req, res) {
       if (!message) {
         return res.status(404).json({ error: 'Message not found.' });
       }
-      await sendMessageReplyEmail(message, reply.trim());
+      await sendMessageReplyEmail(message, reply.trim(), attachment);
       const updated = await sql`update contact_messages set is_read = true where id = ${id} returning *`;
       return res.status(200).json({ message: updated[0] });
     } catch (err) {
