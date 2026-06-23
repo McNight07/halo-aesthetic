@@ -149,4 +149,50 @@ async function sendBookingEmail(type, booking) {
   }
 }
 
-module.exports = { sendBookingEmail };
+async function sendContactNotificationEmail(message) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not set — skipping email send');
+    return;
+  }
+
+  const html = baseLayout({
+    heading: 'New Contact Message',
+    intro: `${message.name} sent a message through the website contact form.`,
+    details: `
+      <table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-family:Georgia,serif;">
+        <tr>
+          <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; color:#6b6558; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Name</td>
+          <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; text-align:right; color:#1c1a14; font-size:14px;">${message.name}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; color:#6b6558; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Email</td>
+          <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; text-align:right; color:#1c1a14; font-size:14px;">${message.email}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; color:#6b6558; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Phone</td>
+          <td style="padding:10px 0; border-bottom:1px solid #e3dcc7; text-align:right; color:#1c1a14; font-size:14px;">${message.phone || '—'}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0; color:#6b6558; font-size:13px; text-transform:uppercase; letter-spacing:0.5px; vertical-align:top;">Message</td>
+          <td style="padding:10px 0; text-align:right; color:#1c1a14; font-size:14px;">${message.message}</td>
+        </tr>
+      </table>
+    `,
+    footerNote: `Reply directly to this email to respond to ${message.name.split(' ')[0]}, or view all messages in the admin dashboard.`,
+  });
+
+  try {
+    const resend = getResend();
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: REPLY_TO_ADDRESS,
+      replyTo: message.email,
+      subject: `New message from ${message.name} — Halo Aesthetic`,
+      html,
+    });
+  } catch (err) {
+    console.error(`Failed to send contact notification email for message ${message.id}:`, err);
+  }
+}
+
+module.exports = { sendBookingEmail, sendContactNotificationEmail };

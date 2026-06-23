@@ -16,9 +16,13 @@ create table if not exists contact_messages (
   id serial primary key,
   name text not null,
   email text not null,
+  phone text,
   message text not null,
   created_at timestamptz default now()
 );
+
+alter table contact_messages add column if not exists phone text;
+alter table contact_messages add column if not exists is_read boolean not null default false;
 
 create table if not exists services (
   id serial primary key,

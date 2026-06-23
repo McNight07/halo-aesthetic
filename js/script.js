@@ -475,20 +475,18 @@ function removeFromCart(name) {
 }
 
 function animateCartIcon() {
-  const cartLink = document.getElementById("cart-link");
-  const badge = document.getElementById("cart-badge");
-  if (cartLink) {
+  document.querySelectorAll(".cart-link").forEach((cartLink) => {
     cartLink.classList.remove("bump");
     void cartLink.offsetWidth;
     cartLink.classList.add("bump");
     setTimeout(() => cartLink.classList.remove("bump"), 600);
-  }
-  if (badge) {
+  });
+  document.querySelectorAll(".cart-badge").forEach((badge) => {
     badge.classList.remove("pop");
     void badge.offsetWidth;
     badge.classList.add("pop");
     setTimeout(() => badge.classList.remove("pop"), 500);
-  }
+  });
 }
 
 function flashAddedButton(btn) {
@@ -505,11 +503,13 @@ function flashAddedButton(btn) {
 }
 
 function updateCartBadge() {
-  const badge = document.getElementById("cart-badge");
-  if (!badge) return;
+  const badges = document.querySelectorAll(".cart-badge");
+  if (!badges.length) return;
   const count = getCart().reduce((sum, item) => sum + item.qty, 0);
-  badge.textContent = count;
-  badge.classList.toggle("visible", count > 0);
+  badges.forEach((badge) => {
+    badge.textContent = count;
+    badge.classList.toggle("visible", count > 0);
+  });
 }
 
 function showToast(message) {

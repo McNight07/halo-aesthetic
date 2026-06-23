@@ -169,6 +169,10 @@ header {
   cursor: pointer;
 }
 
+.navbar-mobile-actions {
+  display: none;
+}
+
 /* Buttons */
 .btn {
   display: inline-block;
@@ -932,6 +936,18 @@ footer {
 
   .nav-links.open { display: flex; }
   .nav-toggle { display: inline-block; }
+
+  .nav-links li:has(a.cart-link) { display: none; }
+
+  .navbar-mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+    margin-right: 14px;
+  }
+
+  .navbar-mobile-actions .cart-link { position: relative; color: #f3efe7; }
 }
 
 /* Mobile hero photo sizing */

@@ -542,6 +542,55 @@ async function handleReviews(req, res) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
+async function handleMessages(req, res) {
+  const sql = getSql();
+
+  if (req.method === 'GET') {
+    try {
+      const rows = await sql`select * from contact_messages order by created_at desc limit 300`;
+      return res.status(200).json({ messages: rows });
+    } catch (err) {
+      console.error('admin messages fetch failed', err);
+      return res.status(500).json({ error: 'Could not load messages.' });
+    }
+  }
+
+  if (req.method === 'PUT') {
+    const { id, isRead } = req.body || {};
+    if (!id) {
+      return res.status(400).json({ error: 'id is required' });
+    }
+    try {
+      const rows = await sql`
+        update contact_messages set is_read = coalesce(${isRead}, is_read)
+        where id = ${id}
+        returning *
+      `;
+      return res.status(200).json({ message: rows[0] });
+    } catch (err) {
+      console.error('admin message update failed', err);
+      return res.status(500).json({ error: 'Could not update message.' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ error: 'id is required' });
+    }
+    try {
+      await sql`delete from contact_messages where id = ${id}`;
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      console.error('admin message delete failed', err);
+      return res.status(500).json({ error: 'Could not delete message.' });
+    }
+  }
+
+  res.setHeader('Allow', 'GET, PUT, DELETE');
+  return res.status(405).json({ error: 'Method not allowed' });
+}
+
 async function handleSettings(req, res) {
   const sql = getSql();
 
@@ -601,6 +650,7 @@ module.exports = async (req, res) => {
   if (action === 'revenue') return handleRevenue(req, res);
   if (action === 'calendar') return handleCalendar(req, res);
   if (action === 'reviews') return handleReviews(req, res);
+  if (action === 'messages') return handleMessages(req, res);
   if (action === 'settings') return handleSettings(req, res);
 
   return res.status(404).json({ error: 'Not found' });

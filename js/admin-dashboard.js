@@ -75,6 +75,7 @@ function showApp() {
   document.getElementById("login-screen").style.display = "none";
   document.getElementById("admin-app").style.display = "flex";
   loadSection("dashboard");
+  refreshMessagesBadge();
 }
 
 function setupLogin() {
@@ -138,6 +139,7 @@ function loadSection(name) {
   if (name === "services") loadServicesAdmin();
   if (name === "revenue") loadRevenue();
   if (name === "reviews") loadReviews();
+  if (name === "messages") loadMessages();
   if (name === "settings") loadSettings();
 }
 
@@ -719,6 +721,63 @@ async function loadReviews() {
     });
   } catch (err) {
     pendingList.innerHTML = '<p class="admin-empty">Could not load reviews.</p>';
+  }
+}
+
+/* ---------- Messages ---------- */
+
+async function refreshMessagesBadge() {
+  const badge = document.getElementById("messages-unread-badge");
+  if (!badge) return;
+  try {
+    const data = await api("messages");
+    const unread = data.messages.filter((m) => !m.is_read).length;
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? "inline-flex" : "none";
+  } catch (err) {
+    // ignore
+  }
+}
+
+async function loadMessages() {
+  const list = document.getElementById("messages-list");
+  try {
+    const data = await api("messages");
+
+    list.innerHTML = data.messages.length === 0
+      ? '<p class="admin-empty">No messages yet.</p>'
+      : data.messages.map((m) => `
+          <div class="admin-row-card" style="cursor: default; ${m.is_read ? "" : "border-left: 3px solid var(--gold);"}">
+            <div class="admin-row-main">
+              <h4>${escapeHtml(m.name)} ${m.is_read ? "" : '<span class="admin-pill active" style="margin-left: 8px;">New</span>'}</h4>
+              <div class="admin-row-meta">${escapeHtml(m.email)}${m.phone ? ` &middot; ${escapeHtml(m.phone)}` : ""} &middot; ${formatDateTime(m.created_at)}</div>
+              <div class="admin-row-meta" style="margin-top: 8px;">${escapeHtml(m.message)}</div>
+            </div>
+            <div class="admin-row-actions">
+              ${m.is_read ? "" : `<button class="mark-read-message-btn" data-id="${m.id}">Mark Read</button>`}
+              <button class="delete-message-btn" data-id="${m.id}">Delete</button>
+            </div>
+          </div>
+        `).join("");
+
+    document.querySelectorAll(".mark-read-message-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await api("messages", { method: "PUT", body: JSON.stringify({ id: btn.dataset.id, isRead: true }) });
+        loadMessages();
+        refreshMessagesBadge();
+      });
+    });
+
+    document.querySelectorAll(".delete-message-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await api(`messages?id=${btn.dataset.id}`, { method: "DELETE" });
+        showToast("Message deleted");
+        loadMessages();
+        refreshMessagesBadge();
+      });
+    });
+  } catch (err) {
+    list.innerHTML = '<p class="admin-empty">Could not load messages.</p>';
   }
 }
 

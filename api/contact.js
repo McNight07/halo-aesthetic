@@ -1,5 +1,6 @@
 const { getSql } = require('./_db/client');
 const { isValidEmail, missingFields } = require('./_db/validate');
+const { sendContactNotificationEmail } = require('./_db/email');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -19,10 +20,19 @@ module.exports = async (req, res) => {
   try {
     const sql = getSql();
     const rows = await sql`
-      insert into contact_messages (name, email, message)
-      values (${body.name}, ${body.email}, ${body.message})
+      insert into contact_messages (name, email, phone, message)
+      values (${body.name}, ${body.email}, ${body.phone || null}, ${body.message})
       returning id
     `;
+
+    await sendContactNotificationEmail({
+      id: rows[0].id,
+      name: body.name,
+      email: body.email,
+      phone: body.phone || null,
+      message: body.message,
+    });
+
     return res.status(201).json({ success: true, id: rows[0].id });
   } catch (err) {
     console.error('contact insert failed', err);
