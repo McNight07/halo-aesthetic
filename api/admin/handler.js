@@ -393,6 +393,50 @@ async function handleServicesAdmin(req, res) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
+async function handleCalendar(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const month = req.query.month; // 'YYYY-MM', defaults to current month
+  try {
+    const sql = getSql();
+    const monthStart = month ? `${month}-01` : null;
+
+    const rows = monthStart
+      ? await sql`
+          select service, status, preferred_date
+          from bookings
+          where preferred_date >= ${monthStart}::date
+            and preferred_date < (${monthStart}::date + interval '1 month')
+        `
+      : await sql`
+          select service, status, preferred_date
+          from bookings
+          where preferred_date >= date_trunc('month', current_date)
+            and preferred_date < date_trunc('month', current_date) + interval '1 month'
+        `;
+
+    const byDay = {};
+    rows.forEach((b) => {
+      const day = new Date(b.preferred_date).toISOString().slice(0, 10);
+      if (!byDay[day]) byDay[day] = { revenueCents: 0, appointmentCount: 0 };
+      byDay[day].appointmentCount += 1;
+      if (b.status === 'completed') {
+        byDay[day].revenueCents += priceFromServiceLabel(b.service);
+      }
+    });
+
+    return res.status(200).json({
+      days: Object.entries(byDay).map(([date, v]) => ({ date, ...v })),
+    });
+  } catch (err) {
+    console.error('admin calendar fetch failed', err);
+    return res.status(500).json({ error: 'Could not load calendar data.' });
+  }
+}
+
 async function handleRevenue(req, res) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
@@ -401,17 +445,6 @@ async function handleRevenue(req, res) {
 
   try {
     const sql = getSql();
-    const rows = await sql`
-      select service, preferred_date
-      from bookings
-      where status = 'completed' and preferred_date >= current_date - interval '30 days'
-    `;
-
-    const byDay = {};
-    rows.forEach((b) => {
-      const day = new Date(b.preferred_date).toISOString().slice(0, 10);
-      byDay[day] = (byDay[day] || 0) + priceFromServiceLabel(b.service);
-    });
 
     const thisMonthRows = await sql`
       select service from bookings
@@ -431,7 +464,6 @@ async function handleRevenue(req, res) {
     const allTimeCents = allTimeRows.reduce((sum, b) => sum + priceFromServiceLabel(b.service), 0);
 
     return res.status(200).json({
-      daily: Object.entries(byDay).map(([date, cents]) => ({ date, cents })).sort((a, b) => a.date.localeCompare(b.date)),
       thisMonthCents,
       lastMonthCents,
       allTimeCents,
@@ -550,6 +582,7 @@ module.exports = async (req, res) => {
   if (action === 'client-notes') return handleClientNotes(req, res);
   if (action === 'services-admin') return handleServicesAdmin(req, res);
   if (action === 'revenue') return handleRevenue(req, res);
+  if (action === 'calendar') return handleCalendar(req, res);
   if (action === 'reviews') return handleReviews(req, res);
   if (action === 'settings') return handleSettings(req, res);
 

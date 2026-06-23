@@ -523,62 +523,133 @@ function setupServiceModal() {
 
 /* ---------- Revenue ---------- */
 
+let calendarMonth = (() => {
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() }; // month: 0-11
+})();
+
 async function loadRevenue() {
   try {
     const data = await api("revenue");
     document.getElementById("revenue-all-time").textContent = formatCents(data.allTimeCents);
     document.getElementById("revenue-this-month").textContent = formatCents(data.thisMonthCents);
     document.getElementById("revenue-last-month").textContent = formatCents(data.lastMonthCents);
-
-    const chart = document.getElementById("revenue-chart");
-
-    // Always show all 30 days, even ones with no completed revenue, so the
-    // chart reads as a continuous timeline rather than only the active days.
-    const byDate = {};
-    data.daily.forEach((d) => { byDate[d.date] = d.cents; });
-    const days = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
-      days.push({ date: key, cents: byDate[key] || 0 });
-    }
-
-    const max = Math.max(...days.map((d) => d.cents), 1);
-    const width = 900;
-    const height = 260;
-    const topPad = 30;
-    const bottomPad = 36;
-    const barAreaHeight = height - topPad - bottomPad;
-    const slot = width / days.length;
-    const barWidth = Math.max(slot - 6, 4);
-
-    const bars = days.map((d, i) => {
-      const barHeight = d.cents > 0 ? (d.cents / max) * barAreaHeight : 0;
-      const x = i * slot + (slot - barWidth) / 2;
-      const y = topPad + barAreaHeight - barHeight;
-      const dayNum = parseInt(d.date.slice(8, 10), 10);
-      const showDateLabel = dayNum % 3 === 1 || i === days.length - 1;
-      const valueLabel = d.cents > 0
-        ? `<text class="revenue-bar-value" x="${x + barWidth / 2}" y="${y - 8}" text-anchor="middle">${formatCents(d.cents)}</text>`
-        : "";
-      const dateLabel = showDateLabel
-        ? `<text class="revenue-bar-date" x="${x + barWidth / 2}" y="${height - 14}" text-anchor="middle">${dayNum}</text>`
-        : "";
-      return `
-        <rect class="revenue-bar" x="${x}" y="${y}" width="${barWidth}" height="${Math.max(barHeight, d.cents > 0 ? 3 : 0)}" rx="3">
-          <title>${d.date}: ${formatCents(d.cents)}</title>
-        </rect>
-        ${valueLabel}
-        ${dateLabel}
-      `;
-    }).join("");
-
-    const baseline = `<line x1="0" y1="${topPad + barAreaHeight}" x2="${width}" y2="${topPad + barAreaHeight}" class="revenue-baseline"/>`;
-
-    chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 260px;">${baseline}${bars}</svg>`;
   } catch (err) {
     showToast(err.message);
+  }
+  loadCalendar();
+}
+
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function monthParam() {
+  return `${calendarMonth.year}-${String(calendarMonth.month + 1).padStart(2, "0")}`;
+}
+
+async function loadCalendar() {
+  const grid = document.getElementById("revenue-calendar");
+  document.getElementById("calendar-month-label").textContent = `${MONTH_NAMES[calendarMonth.month]} ${calendarMonth.year}`;
+
+  let byDate = {};
+  try {
+    const data = await api(`calendar?month=${monthParam()}`);
+    data.days.forEach((d) => { byDate[d.date] = d; });
+  } catch (err) {
+    showToast(err.message);
+  }
+
+  const firstOfMonth = new Date(calendarMonth.year, calendarMonth.month, 1);
+  const daysInMonth = new Date(calendarMonth.year, calendarMonth.month + 1, 0).getDate();
+  const startWeekday = firstOfMonth.getDay();
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  const weekdayCells = WEEKDAY_NAMES.map((d) => `<div class="calendar-weekday">${d}</div>`).join("");
+  const blanks = Array.from({ length: startWeekday }, () => `<div class="calendar-day empty"></div>`).join("");
+
+  const dayCells = Array.from({ length: daysInMonth }, (_, i) => {
+    const dayNum = i + 1;
+    const dateKey = `${calendarMonth.year}-${String(calendarMonth.month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+    const info = byDate[dateKey];
+    const isToday = dateKey === todayKey;
+    return `
+      <div class="calendar-day ${isToday ? "today" : ""}" data-date="${dateKey}">
+        <div class="calendar-day-num">${dayNum}</div>
+        ${info && info.revenueCents > 0 ? `<div class="calendar-day-revenue">${formatCents(info.revenueCents)}</div>` : ""}
+        ${info && info.appointmentCount > 0 ? `<div class="calendar-day-count">${info.appointmentCount} appt${info.appointmentCount === 1 ? "" : "s"}</div>` : ""}
+      </div>
+    `;
+  }).join("");
+
+  grid.innerHTML = weekdayCells + blanks + dayCells;
+
+  grid.querySelectorAll(".calendar-day:not(.empty)").forEach((cell) => {
+    cell.addEventListener("click", () => openDayDetail(cell.dataset.date));
+  });
+}
+
+function setupCalendarNav() {
+  document.getElementById("calendar-prev-btn").addEventListener("click", () => {
+    calendarMonth.month -= 1;
+    if (calendarMonth.month < 0) { calendarMonth.month = 11; calendarMonth.year -= 1; }
+    loadCalendar();
+  });
+  document.getElementById("calendar-next-btn").addEventListener("click", () => {
+    calendarMonth.month += 1;
+    if (calendarMonth.month > 11) { calendarMonth.month = 0; calendarMonth.year += 1; }
+    loadCalendar();
+  });
+  document.getElementById("day-detail-modal-close").addEventListener("click", () => {
+    document.getElementById("day-detail-modal").classList.remove("open");
+  });
+}
+
+async function openDayDetail(dateKey) {
+  const modal = document.getElementById("day-detail-modal");
+  const title = document.getElementById("day-detail-title");
+  const summary = document.getElementById("day-detail-summary");
+  const list = document.getElementById("day-detail-list");
+
+  const niceDate = new Date(`${dateKey}T00:00:00`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  title.textContent = niceDate;
+  summary.textContent = "Loading...";
+  list.innerHTML = "";
+  modal.classList.add("open");
+
+  try {
+    const data = await api(`bookings?from=${dateKey}&to=${dateKey}`);
+    const bookings = data.bookings;
+
+    if (bookings.length === 0) {
+      summary.textContent = "No appointments on this day.";
+      return;
+    }
+
+    const totalCents = bookings
+      .filter((b) => b.status === "completed")
+      .reduce((sum, b) => sum + parseServiceLine(b.service).totalCents, 0);
+    summary.textContent = `${bookings.length} appointment${bookings.length === 1 ? "" : "s"} · ${formatCents(totalCents)} completed revenue`;
+
+    list.innerHTML = bookings
+      .map((b) => {
+        const { items } = parseServiceLine(b.service);
+        const servicesHtml = items.map((item) => `<div class="appt-service-line">${escapeHtml(item.name)} <span>${formatCents(item.priceCents)}</span></div>`).join("");
+        return `
+          <div class="admin-row-card" style="cursor: default;">
+            <div class="admin-row-main">
+              <h4>${escapeHtml(b.name)}</h4>
+              <div class="admin-row-meta">
+                <div class="appt-services-list">${servicesHtml}</div>
+                ${formatTime(b.preferred_time)} · ${escapeHtml(b.phone)}
+              </div>
+            </div>
+            <span class="status-badge status-${b.status}">${b.status}</span>
+          </div>
+        `;
+      })
+      .join("");
+  } catch (err) {
+    summary.textContent = "Could not load appointments for this day.";
   }
 }
 
@@ -726,5 +797,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupClientSearch();
   setupServiceModal();
   setupSettingsForms();
+  setupCalendarNav();
   checkAuthAndLoad();
 });

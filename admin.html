@@ -133,8 +133,12 @@
         </div>
       </div>
       <div class="admin-panel" style="margin-top: 24px;">
-        <h3 class="admin-panel-title">Last 30 Days</h3>
-        <div id="revenue-chart"></div>
+        <div class="admin-section-header-row" style="margin-bottom: 18px;">
+          <button class="btn" id="calendar-prev-btn">&larr;</button>
+          <h3 class="admin-panel-title" id="calendar-month-label" style="margin: 0;">Month Year</h3>
+          <button class="btn" id="calendar-next-btn">&rarr;</button>
+        </div>
+        <div id="revenue-calendar" class="revenue-calendar"></div>
       </div>
     </section>
 
@@ -279,6 +283,15 @@
       <button type="submit" class="btn btn-solid">Save Service</button>
       <div id="service-edit-status"></div>
     </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="day-detail-modal">
+  <div class="modal" style="max-width: 560px;">
+    <button class="modal-close" id="day-detail-modal-close" aria-label="Close">&times;</button>
+    <h3 id="day-detail-title">Appointments</h3>
+    <div id="day-detail-summary" class="admin-row-meta" style="margin: 6px 0 18px;"></div>
+    <div id="day-detail-list"></div>
   </div>
 </div>
 
