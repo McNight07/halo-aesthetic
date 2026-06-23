@@ -394,7 +394,7 @@ async function loadWeeklyCalendar() {
         `).join("");
 
     return `
-      <div class="weekly-day ${key === todayKey ? "today" : ""}">
+      <div class="weekly-day ${key === todayKey ? "today" : ""}" data-date="${key}" data-day-name="${dayName}">
         <div class="weekly-day-header">
           <div class="weekly-day-name">${dayName.slice(0, 3)}</div>
           <div class="weekly-day-date">${day.getDate()}</div>
@@ -405,11 +405,74 @@ async function loadWeeklyCalendar() {
   }).join("");
 
   grid.querySelectorAll(".weekly-appt").forEach((el) => {
-    el.addEventListener("click", () => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
       const booking = bookings.find((b) => String(b.id) === el.dataset.id);
       if (booking) openAppointmentModal(booking);
     });
   });
+
+  grid.querySelectorAll(".weekly-day").forEach((el) => {
+    el.addEventListener("click", () => {
+      const key = el.dataset.date;
+      const dayBookings = bookings
+        .filter((b) => b.preferred_date.slice(0, 10) === key)
+        .sort((a, b) => a.preferred_time.localeCompare(b.preferred_time));
+      openWeekDayModal(el.dataset.dayName, key, dayBookings);
+    });
+  });
+}
+
+function openWeekDayModal(dayName, dateKeyValue, dayBookings) {
+  const modal = document.getElementById("week-day-modal");
+  const title = document.getElementById("week-day-modal-title");
+  const list = document.getElementById("week-day-modal-list");
+
+  title.textContent = `${dayName}, ${formatDate(dateKeyValue)}`;
+
+  list.innerHTML = dayBookings.length === 0
+    ? '<div class="admin-empty">No appointments scheduled for this day.</div>'
+    : dayBookings.map((b) => {
+        const { items } = parseServiceLine(b.service);
+        const serviceNames = items.map((item) => item.name).join(", ");
+        return `
+          <div class="admin-row-card week-day-modal-item" data-id="${b.id}" style="cursor: pointer;">
+            <div class="admin-row-main">
+              <h4>${escapeHtml(b.name)}</h4>
+              <div class="admin-row-meta">${escapeHtml(serviceNames)}</div>
+            </div>
+            <span class="appt-time-badge">${formatTime(b.preferred_time)}</span>
+          </div>
+        `;
+      }).join("");
+
+  list.querySelectorAll(".week-day-modal-item").forEach((el) => {
+    el.addEventListener("click", () => {
+      modal.classList.remove("open");
+      highlightAppointmentInList(el.dataset.id);
+    });
+  });
+
+  modal.classList.add("open");
+}
+
+async function highlightAppointmentInList(id) {
+  appointmentFilters.status = "";
+  appointmentFilters.search = "";
+  const searchInput = document.getElementById("appt-search");
+  if (searchInput) searchInput.value = "";
+  document.querySelectorAll("#status-filter-pills .admin-pill").forEach((p) => {
+    p.classList.toggle("active", p.dataset.status === "");
+  });
+
+  await loadAppointments();
+
+  const card = document.querySelector(`#appointments-list .admin-row-card[data-id="${id}"]`);
+  if (!card) return;
+
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("highlight-pulse");
+  setTimeout(() => card.classList.remove("highlight-pulse"), 2000);
 }
 
 function setupWeekNav() {
@@ -420,6 +483,9 @@ function setupWeekNav() {
   document.getElementById("week-next-btn").addEventListener("click", () => {
     weekViewStart.setDate(weekViewStart.getDate() + 7);
     loadWeeklyCalendar();
+  });
+  document.getElementById("week-day-modal-close").addEventListener("click", () => {
+    document.getElementById("week-day-modal").classList.remove("open");
   });
 }
 

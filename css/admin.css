@@ -492,6 +492,13 @@
   border-radius: 10px;
   padding: 10px;
   min-height: 120px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.weekly-day:hover {
+  border-color: var(--gold-light);
+  background: rgba(207, 161, 94, 0.06);
 }
 
 .weekly-day.today {
@@ -661,6 +668,35 @@
   font-size: 0.85rem;
 }
 
+/* Weekly day detail modal */
+.week-day-modal-list {
+  margin-top: 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.week-day-modal-item:hover {
+  border-color: var(--gold-light);
+  background: rgba(207, 161, 94, 0.06);
+}
+
+@keyframes highlight-pulse {
+  0%, 100% { box-shadow: none; background: rgba(243, 239, 231, 0.03); }
+  25% { box-shadow: 0 0 0 3px rgba(207, 161, 94, 0.5); background: rgba(207, 161, 94, 0.12); }
+}
+
+.highlight-pulse {
+  animation: highlight-pulse 1s ease-in-out 2;
+  border-color: var(--gold-light) !important;
+}
+
+@media (max-width: 640px) {
+  .week-day-modal-list {
+    max-height: 70vh;
+  }
+}
+
 .admin-stat-card-total {
   border-color: var(--gold-light);
   background: rgba(207, 161, 94, 0.08);
@@ -680,6 +716,11 @@
   .admin-main { padding: 24px 18px; }
   .admin-stat-grid { grid-template-columns: repeat(2, 1fr); }
   .admin-grid-2 { grid-template-columns: 1fr; }
+  .weekly-calendar { grid-template-columns: repeat(7, 110px); overflow-x: auto; padding-bottom: 6px; }
+}
+
+@media (max-width: 640px) {
+  .notif-dropdown { width: calc(100vw - 36px); right: -10px; }
 }
 
 /* Itemized services + total inside an appointment row */
