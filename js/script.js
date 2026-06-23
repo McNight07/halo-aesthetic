@@ -200,6 +200,12 @@ function updateServiceCheckboxLimit() {
   });
 
   if (countLabel) countLabel.textContent = `(${checkedCount}/${MAX_SERVICES_PER_BOOKING} selected)`;
+
+  const subtotalEl = document.getElementById("b-service-subtotal");
+  if (subtotalEl) {
+    const totalCents = getSelectedServices().reduce((sum, s) => sum + s.price_cents, 0);
+    subtotalEl.textContent = `$${(totalCents / 100).toFixed(0)}`;
+  }
 }
 
 async function loadServicesIntoSelect() {

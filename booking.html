@@ -81,7 +81,13 @@
           <textarea id="b-notes" name="notes" rows="4" placeholder="Any preferences, allergies, or special requests"></textarea>
         </div>
 
-        <button type="submit" class="btn btn-solid">Request Booking</button>
+        <div class="booking-submit-row">
+          <button type="submit" class="btn btn-solid">Request Booking</button>
+          <div class="booking-subtotal">
+            <span class="booking-subtotal-label">Subtotal</span>
+            <span class="booking-subtotal-value" id="b-service-subtotal">$0</span>
+          </div>
+        </div>
         <div id="form-status"></div>
         <p class="form-note">This sends a booking request only — no payment is taken here. To purchase a bundle or membership in advance, visit <a href="pricing.html" style="text-decoration: underline;">Pricing</a>. The studio address is shared once your appointment is confirmed.</p>
       </form>

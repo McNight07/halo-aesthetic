@@ -29,6 +29,20 @@ function formatTime(value) {
   return String(value).slice(0, 5);
 }
 
+// bookings.service is stored as "Brow Threading — $35, Back Wax — $55" (1-3 items).
+function parseServiceLine(label) {
+  const items = String(label)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const match = part.match(/^(.*?)\s*—\s*\$(\d+)\s*$/);
+      return match ? { name: match[1].trim(), priceCents: parseInt(match[2], 10) * 100 } : { name: part, priceCents: 0 };
+    });
+  const totalCents = items.reduce((sum, item) => sum + item.priceCents, 0);
+  return { items, totalCents };
+}
+
 async function api(path, options = {}) {
   const response = await fetch(`/api/admin/${path}`, {
     headers: { "Content-Type": "application/json" },
@@ -181,12 +195,20 @@ async function loadAppointments() {
       return;
     }
 
-    list.innerHTML = data.bookings.map((b) => `
+    list.innerHTML = data.bookings.map((b) => {
+      const { items, totalCents } = parseServiceLine(b.service);
+      const servicesHtml = items
+        .map((item) => `<div class="appt-service-line">${escapeHtml(item.name)} <span>${formatCents(item.priceCents)}</span></div>`)
+        .join("");
+      return `
       <div class="admin-row-card" data-id="${b.id}">
         <div class="admin-row-main">
           <h4>${escapeHtml(b.name)}</h4>
           <div class="admin-row-meta">
-            ${escapeHtml(b.service)}<br>
+            <div class="appt-services-list">
+              ${servicesHtml}
+              <div class="appt-service-line appt-service-total">Total <span>${formatCents(totalCents)}</span></div>
+            </div>
             ${formatDate(b.preferred_date)} at ${formatTime(b.preferred_time)}<br>
             ${escapeHtml(b.phone)} · ${escapeHtml(b.email)}
             ${b.notes ? `<br>Notes: ${escapeHtml(b.notes)}` : ""}
@@ -202,7 +224,8 @@ async function loadAppointments() {
           <button class="edit-appt-btn" data-id="${b.id}">Edit</button>
         </div>
       </div>
-    `).join("");
+    `;
+    }).join("");
 
     list.querySelectorAll(".status-select").forEach((select) => {
       select.addEventListener("click", (e) => e.stopPropagation());

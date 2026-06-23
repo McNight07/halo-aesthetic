@@ -291,9 +291,10 @@
   font-size: 0.78rem;
   padding: 7px 12px;
   border-radius: 8px;
-  background: rgba(243, 239, 231, 0.05);
+  background: #1c1813;
   border: 1px solid #2a2620;
   color: #f3efe7;
+  color-scheme: dark;
   cursor: pointer;
   font-family: var(--font-sans);
 }
@@ -340,4 +341,36 @@
   .admin-main { padding: 24px 18px; }
   .admin-stat-grid { grid-template-columns: repeat(2, 1fr); }
   .admin-grid-2 { grid-template-columns: 1fr; }
+}
+
+/* Itemized services + total inside an appointment row */
+.appt-services-list {
+  background: rgba(243, 239, 231, 0.04);
+  border: 1px solid #2a2620;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+
+.appt-service-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.85rem;
+  padding: 3px 0;
+  color: #d8d2c4;
+}
+
+.appt-service-line span {
+  color: var(--gold-light);
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.appt-service-total {
+  border-top: 1px solid #2a2620;
+  margin-top: 4px;
+  padding-top: 7px;
+  font-weight: 600;
+  color: #f3efe7;
 }

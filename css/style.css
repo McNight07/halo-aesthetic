@@ -652,6 +652,10 @@ section { padding: 90px 0; }
   font-size: 0.95rem;
 }
 
+.form-group select {
+  color-scheme: light;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
@@ -663,6 +667,34 @@ section { padding: 90px 0; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+.booking-submit-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.booking-subtotal {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.booking-subtotal-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.booking-subtotal-value {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: var(--gold);
 }
 
 .form-note {
@@ -797,12 +829,17 @@ footer {
   .nav-links {
     position: absolute;
     top: 100%; left: 0; right: 0;
-    background: var(--bg);
+    background: #0e0c09;
     flex-direction: column;
     padding: 20px 24px;
     gap: 18px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #2a2620;
     display: none;
+  }
+
+  .nav-links a {
+    opacity: 1;
+    color: #f3efe7;
   }
   .nav-links.open { display: flex; }
   .nav-toggle { display: inline-block; }
