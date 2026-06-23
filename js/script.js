@@ -13,6 +13,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const submitBtn = bookingForm.querySelector('button[type="submit"]');
       const data = Object.fromEntries(new FormData(bookingForm).entries());
 
+      const selected = getSelectedServices();
+      const serviceError = document.getElementById("b-service-error");
+      if (selected.length === 0) {
+        serviceError.style.display = "block";
+        return;
+      }
+      serviceError.style.display = "none";
+      data.service = selected.map((s) => `${s.name} — $${(s.price_cents / 100).toFixed(0)}`).join(", ");
+
       submitBtn.disabled = true;
       status.textContent = "Sending your request...";
       status.className = "";
@@ -29,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
           status.textContent = "Thank you — your request has been received. We'll confirm by email shortly.";
           status.className = "success";
           bookingForm.reset();
+          updateServiceCheckboxLimit();
           localStorage.removeItem(CART_KEY);
           updateCartBadge();
           const note = document.getElementById("cart-prefill-note");
@@ -136,37 +146,77 @@ function groupByCategory(services) {
   return groups;
 }
 
-function renderServiceOptions(select, services) {
+const MAX_SERVICES_PER_BOOKING = 3;
+
+function renderServiceCheckboxes(container, services) {
   const groups = groupByCategory(services);
-  select.innerHTML = '<option value="">Select a treatment</option>';
-  Object.entries(groups).forEach(([category, items]) => {
-    const optgroup = document.createElement("optgroup");
-    optgroup.label = category === "Bundle" ? "Bundles" : category;
-    items.forEach((item) => {
-      const option = document.createElement("option");
-      const price = (item.price_cents / 100).toFixed(0);
-      option.textContent = `${item.name} — $${price}`;
-      optgroup.appendChild(option);
-    });
-    select.appendChild(optgroup);
+  container.innerHTML = Object.entries(groups)
+    .map(([category, items]) => {
+      const label = category === "Bundle" ? "Bundles" : category;
+      const rows = items
+        .map((item, i) => {
+          const price = (item.price_cents / 100).toFixed(0);
+          const inputId = `b-svc-${category.replace(/\W+/g, "")}-${i}`;
+          return `
+            <label class="service-checkbox-item" for="${inputId}">
+              <input type="checkbox" id="${inputId}" data-name="${escapeHtml(item.name)}" data-price-cents="${item.price_cents}">
+              ${escapeHtml(item.name)}
+              <span class="price">$${price}</span>
+            </label>
+          `;
+        })
+        .join("");
+      return `<div class="service-checkbox-group-label">${escapeHtml(label)}</div>${rows}`;
+    })
+    .join("");
+
+  container.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+    cb.addEventListener("change", updateServiceCheckboxLimit);
   });
+  updateServiceCheckboxLimit();
+}
+
+function getSelectedServices() {
+  const container = document.getElementById("b-service-checkboxes");
+  if (!container) return [];
+  return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map((cb) => ({
+    name: cb.dataset.name,
+    price_cents: parseInt(cb.dataset.priceCents, 10),
+  }));
+}
+
+function updateServiceCheckboxLimit() {
+  const container = document.getElementById("b-service-checkboxes");
+  const countLabel = document.getElementById("b-service-count");
+  if (!container) return;
+
+  const checkboxes = Array.from(container.querySelectorAll('input[type="checkbox"]'));
+  const checkedCount = checkboxes.filter((cb) => cb.checked).length;
+
+  checkboxes.forEach((cb) => {
+    const atLimit = checkedCount >= MAX_SERVICES_PER_BOOKING && !cb.checked;
+    cb.disabled = atLimit;
+    cb.closest(".service-checkbox-item").classList.toggle("disabled", atLimit);
+  });
+
+  if (countLabel) countLabel.textContent = `(${checkedCount}/${MAX_SERVICES_PER_BOOKING} selected)`;
 }
 
 async function loadServicesIntoSelect() {
-  const select = document.getElementById("b-service");
-  if (!select) return;
+  const container = document.getElementById("b-service-checkboxes");
+  if (!container) return;
 
   try {
     const response = await fetch("/api/services");
     if (!response.ok) throw new Error("services fetch failed");
     const { services } = await response.json();
     if (Array.isArray(services) && services.length > 0) {
-      renderServiceOptions(select, services);
+      renderServiceCheckboxes(container, services);
       return;
     }
     throw new Error("empty services list");
   } catch (err) {
-    renderServiceOptions(select, FALLBACK_SERVICES);
+    renderServiceCheckboxes(container, FALLBACK_SERVICES);
   }
 }
 
@@ -360,18 +410,15 @@ function prefillBookingFromCart() {
   const cart = getCart();
   if (cart.length === 0) return;
 
-  const select = document.getElementById("b-service");
+const container = document.getElementById("b-service-checkboxes");
   const notes = document.getElementById("b-notes");
-  if (!select || !notes) return;
+  if (!container || !notes) return;
 
-  const tryMatchOption = (name) => {
-    return Array.from(select.options).find((opt) => opt.textContent.startsWith(name));
-  };
-
-  const firstMatch = tryMatchOption(cart[0].name);
-  if (firstMatch) {
-    select.value = firstMatch.value;
-  }
+  cart.slice(0, MAX_SERVICES_PER_BOOKING).forEach((item) => {
+    const checkbox = Array.from(container.querySelectorAll('input[type="checkbox"]')).find((cb) => cb.dataset.name === item.name);
+    if (checkbox) checkbox.checked = true;
+  });
+  updateServiceCheckboxLimit();
 
   const summaryLines = cart.map((item) => `${item.name} (x${item.qty})`).join(", ");
   notes.value = `Requested from cart: ${summaryLines}` + (notes.value ? `\n${notes.value}` : "");

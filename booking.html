@@ -58,40 +58,11 @@
         </div>
 
         <div class="form-group">
-          <label for="b-service">Treatment</label>
-          <select id="b-service" name="service" required>
-            <option value="">Select a treatment</option>
-            <optgroup label="Waxing">
-              <option>Back Wax — $55</option>
-              <option>Bikini Line Wax — $40</option>
-              <option>Full Arm Wax — $45</option>
-              <option>Full Body Wax — $150</option>
-              <option>Full Legs Wax — $50</option>
-              <option>Half Arms Wax — $30</option>
-              <option>Half Legs Wax — $35</option>
-              <option>Stomach Wax — $30</option>
-              <option>Under Arm Wax — $20</option>
-              <option>Underarms Wax — $20</option>
-            </optgroup>
-            <optgroup label="Threading">
-              <option>Beard Line Threading — $30</option>
-              <option>Brow Threading — $35</option>
-              <option>Chin Threading — $15</option>
-              <option>Forehead Threading — $20</option>
-              <option>Full Face Threading — $55</option>
-              <option>Sideburns Threading — $30</option>
-              <option>Upper Lip Threading — $10</option>
-            </optgroup>
-            <optgroup label="Facial & Other">
-              <option>Hydrating Glow Facial — $150</option>
-              <option>Henna Design — $25</option>
-            </optgroup>
-            <optgroup label="Bundles">
-              <option>Brow &amp; Lip Combo — $40</option>
-              <option>Smooth Legs &amp; Bikini — $80</option>
-              <option>Full Face Refresh — $190</option>
-            </optgroup>
-          </select>
+          <label>Treatment <span id="b-service-count" style="text-transform: none; color: var(--text-muted); font-weight: 400;">(0/3 selected)</span></label>
+          <div id="b-service-checkboxes" class="service-checkbox-list">
+            <!-- Populated by JS from /api/services, with a hardcoded fallback if that fails -->
+          </div>
+          <div id="b-service-error" class="form-note" style="display: none; color: #d98a8a;">Please select at least 1 treatment (up to 3).</div>
         </div>
 
         <div class="form-row">
