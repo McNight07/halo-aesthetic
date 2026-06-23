@@ -96,8 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const result = await response.json();
 
         if (response.ok) {
-          status.textContent = "Message sent — we'll get back to you within 24 hours.";
-          status.className = "success";
+          status.textContent = "";
+          status.className = "";
+          showMessageSuccessModal(data.name);
           contactForm.reset();
         } else {
           status.textContent = result.error || "Something went wrong. Please try again or email us directly.";
@@ -116,6 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadServicesIntoPage();
   setupServiceModal();
   setupBookingSuccessModal();
+  setupMessageSuccessModal();
   setupAddToCartButtons();
   updateCartBadge();
   requireAuthForBooking();
@@ -422,6 +424,26 @@ function setupBookingSuccessModal() {
   const modal = document.getElementById("booking-success-modal");
   if (!modal) return;
   document.getElementById("booking-success-close").addEventListener("click", () => modal.classList.remove("open"));
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.remove("open");
+  });
+}
+
+/* ---------- Contact message success modal ---------- */
+
+function showMessageSuccessModal(name) {
+  const modal = document.getElementById("message-success-modal");
+  if (!modal) return;
+  const firstName = (name || "").split(" ")[0];
+  const heading = document.getElementById("message-success-heading");
+  heading.textContent = firstName ? `Thank You, ${firstName}` : "Thank You";
+  modal.classList.add("open");
+}
+
+function setupMessageSuccessModal() {
+  const modal = document.getElementById("message-success-modal");
+  if (!modal) return;
+  document.getElementById("message-success-close").addEventListener("click", () => modal.classList.remove("open"));
   modal.addEventListener("click", (e) => {
     if (e.target === modal) modal.classList.remove("open");
   });
