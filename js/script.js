@@ -142,6 +142,9 @@ async function requireAuthForBooking() {
     if (signupLink) signupLink.href = `signup.html?redirect=${redirectTo}`;
     gate.classList.add("open");
     bookingForm.querySelectorAll("input, textarea, button, select").forEach((el) => (el.disabled = true));
+    gate.addEventListener("click", (e) => {
+      if (e.target === gate) gate.classList.remove("open");
+    });
     return;
   }
 
