@@ -167,8 +167,18 @@ async function handleBookingStatus(req, res) {
   try {
     const sql = getSql();
     const rows = await sql`
-      update bookings set status = ${status} where id = ${id}
-      returning id, name, email, service, preferred_date, preferred_time
+      update bookings set
+        status = ${status},
+        needs_review = false,
+        last_modified_by = 'admin',
+        updated_at = now()
+      where id = ${id}
+      returning *
+    `;
+
+    await sql`
+      insert into booking_history (booking_id, changed_by, action, snapshot)
+      values (${id}, 'admin', 'status_changed', ${JSON.stringify(rows[0])})
     `;
 
     if (status === 'confirmed' || status === 'cancelled' || status === 'completed') {
@@ -246,6 +256,16 @@ async function handleBookingUpdate(req, res) {
 
   try {
     const sql = getSql();
+    const existing = await sql`select * from bookings where id = ${id}`;
+    if (existing.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found.' });
+    }
+
+    await sql`
+      insert into booking_history (booking_id, changed_by, action, snapshot)
+      values (${id}, 'admin', 'pre_modification_snapshot', ${JSON.stringify(existing[0])})
+    `;
+
     const rows = await sql`
       update bookings set
         name = coalesce(${name}, name),
@@ -254,9 +274,17 @@ async function handleBookingUpdate(req, res) {
         service = coalesce(${service}, service),
         preferred_date = coalesce(${date}, preferred_date),
         preferred_time = coalesce(${time}, preferred_time),
-        notes = coalesce(${notes}, notes)
+        notes = coalesce(${notes}, notes),
+        needs_review = false,
+        last_modified_by = 'admin',
+        updated_at = now()
       where id = ${id}
-      returning client_id
+      returning *
+    `;
+
+    await sql`
+      insert into booking_history (booking_id, changed_by, action, snapshot)
+      values (${id}, 'admin', 'modified', ${JSON.stringify(rows[0])})
     `;
 
     if (rows[0] && rows[0].client_id && (name || phone || email)) {
@@ -273,6 +301,35 @@ async function handleBookingUpdate(req, res) {
   } catch (err) {
     console.error('booking update failed', err);
     return res.status(500).json({ error: 'Could not update appointment.' });
+  }
+}
+
+async function handleBookingHistory(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { id } = req.query;
+  if (!id) {
+    return res.status(400).json({ error: 'id is required' });
+  }
+
+  try {
+    const sql = getSql();
+    const bookingRows = await sql`select * from bookings where id = ${id}`;
+    if (bookingRows.length === 0) {
+      return res.status(404).json({ error: 'Appointment not found.' });
+    }
+    const history = await sql`
+      select id, changed_by, action, snapshot, created_at from booking_history
+      where booking_id = ${id}
+      order by created_at asc
+    `;
+    return res.status(200).json({ booking: bookingRows[0], history });
+  } catch (err) {
+    console.error('admin booking history fetch failed', err);
+    return res.status(500).json({ error: 'Could not load the request history.' });
   }
 }
 
@@ -322,9 +379,14 @@ async function handleBookingCreate(req, res) {
 
     const finalStatus = status || 'confirmed';
     const rows = await sql`
-      insert into bookings (name, phone, email, service, preferred_date, preferred_time, notes, status, client_id)
-      values (${name}, ${phone}, ${email}, ${service}, ${date}, ${time}, ${notes || null}, ${finalStatus}, ${clientId})
-      returning id, name, email, service, preferred_date, preferred_time
+      insert into bookings (name, phone, email, service, preferred_date, preferred_time, notes, status, client_id, last_modified_by)
+      values (${name}, ${phone}, ${email}, ${service}, ${date}, ${time}, ${notes || null}, ${finalStatus}, ${clientId}, 'admin')
+      returning *
+    `;
+
+    await sql`
+      insert into booking_history (booking_id, changed_by, action, snapshot)
+      values (${rows[0].id}, 'admin', 'submitted', ${JSON.stringify(rows[0])})
     `;
 
     if (finalStatus === 'confirmed') {
@@ -852,6 +914,7 @@ module.exports = async (req, res) => {
   if (action === 'booking-status') return handleBookingStatus(req, res);
   if (action === 'booking-send-reminder') return handleSendReminder(req, res);
   if (action === 'booking-update') return handleBookingUpdate(req, res);
+  if (action === 'booking-history') return handleBookingHistory(req, res);
   if (action === 'booking-delete') return handleBookingDelete(req, res);
   if (action === 'booking-create') return handleBookingCreate(req, res);
   if (action === 'clients') return handleClients(req, res);

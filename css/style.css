@@ -8,7 +8,7 @@
   --text-muted: #6b6558;
   --border: #e3dcc7;
   --font-serif: "Playfair Display", Georgia, serif;
-  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Montserrat", "Helvetica Neue", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,11 +25,15 @@ body {
 
 h1, h2, h3, h4 {
   font-family: var(--font-serif);
-  font-weight: 600;
-  font-style: italic;
-  letter-spacing: 0;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: 2px;
   color: var(--cream);
-  text-transform: none;
+  text-transform: uppercase;
+}
+
+h3, h4 {
+  letter-spacing: 1.2px;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -230,8 +234,9 @@ header {
 
 .hero h1 {
   font-size: clamp(2.4rem, 5.5vw, 4rem);
-  line-height: 1.15;
-  margin-bottom: 22px;
+  line-height: 1.2;
+  letter-spacing: 4px;
+  margin-bottom: 28px;
 }
 
 .hero p {
@@ -381,16 +386,16 @@ header {
 }
 
 /* Sections */
-section { padding: 90px 0; scroll-margin-top: 90px; }
+section { padding: 120px 0; scroll-margin-top: 90px; }
 
 .section-header {
   text-align: center;
-  margin-bottom: 56px;
+  margin-bottom: 72px;
 }
 
-.section-header .hero-eyebrow { margin-bottom: 10px; }
+.section-header .hero-eyebrow { margin-bottom: 14px; }
 
-.section-header h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); }
+.section-header h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); letter-spacing: 3px; }
 
 .divider {
   width: 40px;
@@ -432,7 +437,7 @@ section { padding: 90px 0; scroll-margin-top: 90px; }
   margin-bottom: 16px;
 }
 
-.card h3 { font-size: 1.2rem; margin-bottom: 10px; font-style: italic; }
+.card h3 { font-size: 1.15rem; margin-bottom: 10px; letter-spacing: 1px; }
 
 .card p {
   color: var(--text-muted);
@@ -1074,7 +1079,7 @@ footer {
   background: var(--gold);
   color: #1c1a14;
   text-decoration: none;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -1257,6 +1262,111 @@ footer {
   color: var(--text-muted);
   font-size: 0.9rem;
   padding: 20px 0;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.status-pending { background: rgba(156, 106, 46, 0.12); color: #9c6a2e; border-color: rgba(156, 106, 46, 0.3); }
+.status-confirmed { background: rgba(45, 99, 138, 0.12); color: #2d638a; border-color: rgba(45, 99, 138, 0.3); }
+.status-completed { background: rgba(56, 122, 68, 0.12); color: #387a44; border-color: rgba(56, 122, 68, 0.3); }
+.status-cancelled { background: rgba(166, 54, 54, 0.12); color: #a63636; border-color: rgba(166, 54, 54, 0.3); }
+
+.review-badge {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  background: rgba(45, 99, 138, 0.12);
+  color: #2d638a;
+  border: 1px solid rgba(45, 99, 138, 0.3);
+  margin-left: 8px;
+}
+
+.urgent-badge {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  background: rgba(166, 54, 54, 0.12);
+  color: #a63636;
+  border: 1px solid rgba(166, 54, 54, 0.3);
+  margin-left: 8px;
+}
+
+.history-timeline {
+  border-left: 2px solid var(--border);
+  margin: 18px 0 0 8px;
+  padding-left: 20px;
+}
+
+.history-item {
+  position: relative;
+  padding-bottom: 18px;
+}
+
+.history-item::before {
+  content: "";
+  position: absolute;
+  left: -26px;
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gold-light, #cfa15e);
+}
+
+.history-item .history-label {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.history-item .history-time {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.diff-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.diff-row:last-child { border-bottom: none; }
+
+.diff-row .diff-field {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.diff-row .diff-old {
+  color: #a63636;
+  text-decoration: line-through;
+  opacity: 0.75;
+}
+
+.diff-row .diff-new {
+  color: #387a44;
 }
 
 /* Multi-select treatment checkboxes (booking form) */

@@ -235,3 +235,19 @@ from clients c
 where b.client_id is null
   and b.email = c.email
   and b.phone = c.phone;
+
+-- Client-editable booking requests: modification tracking + audit trail
+
+alter table bookings add column if not exists updated_at timestamptz default now();
+alter table bookings add column if not exists needs_review boolean not null default false;
+alter table bookings add column if not exists last_modified_by text;
+alter table bookings add column if not exists client_modified_at timestamptz;
+
+create table if not exists booking_history (
+  id serial primary key,
+  booking_id integer not null references bookings(id) on delete cascade,
+  changed_by text not null,
+  action text not null,
+  snapshot jsonb not null,
+  created_at timestamptz default now()
+);

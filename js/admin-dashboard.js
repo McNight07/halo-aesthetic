@@ -131,12 +131,21 @@ function setupSidebar() {
   });
 }
 
+let appointmentsPollTimer = null;
+
 function loadSection(name) {
   document.querySelectorAll(".admin-section").forEach((s) => { s.style.display = "none"; });
   document.getElementById(`section-${name}`).style.display = "block";
 
+  clearInterval(appointmentsPollTimer);
+  appointmentsPollTimer = null;
+
   if (name === "dashboard") loadDashboard();
-  if (name === "appointments") { loadAppointments(); loadWeeklyCalendar(); }
+  if (name === "appointments") {
+    loadAppointments();
+    loadWeeklyCalendar();
+    appointmentsPollTimer = setInterval(loadAppointments, 15000);
+  }
   if (name === "clients") loadClients();
   if (name === "services") loadServicesAdmin();
   if (name === "revenue") loadRevenue();
@@ -270,10 +279,15 @@ async function loadAppointments() {
       const servicesHtml = items
         .map((item) => `<div class="appt-service-line"><span class="appt-service-name">${escapeHtml(item.name)}</span> <span class="price-value">${formatCents(item.priceCents)}</span></div>`)
         .join("");
+      const modifiedBadge = b.needs_review
+        ? '<span class="urgent-badge">Requires Review</span><span class="review-badge">Updated by Client</span>'
+        : b.last_modified_by === "client"
+          ? '<span class="review-badge">Updated by Client</span>'
+          : "";
       return `
       <div class="admin-row-card" data-id="${b.id}">
         <div class="admin-row-main">
-          <h4>${escapeHtml(b.name)}</h4>
+          <h4>${escapeHtml(b.name)} ${modifiedBadge}</h4>
           <div class="admin-row-meta">
             <div class="appt-services-list">
               ${servicesHtml}
@@ -284,6 +298,8 @@ async function loadAppointments() {
             <span class="reminder-badge reminder-${b.reminder_status || "scheduled"}">Reminder: ${(b.reminder_status || "scheduled").replace(/^./, (c) => c.toUpperCase())}</span><br>
             ${escapeHtml(b.phone)} · ${escapeHtml(b.email)}
             ${b.notes ? `<br>Notes: ${escapeHtml(b.notes)}` : ""}
+            ${b.client_modified_at ? `<br><span class="admin-time">Client last modified: ${formatDateTime(b.client_modified_at)}</span>` : ""}
+            <br><span class="admin-time">Last updated: ${formatDateTime(b.updated_at || b.created_at)}</span>
           </div>
         </div>
         <div class="admin-row-actions">
@@ -295,6 +311,7 @@ async function loadAppointments() {
           </select>
           <button class="email-appt-btn" data-id="${b.id}">E-Mail</button>
           <button class="send-reminder-btn" data-id="${b.id}">Send Reminder Now</button>
+          <button class="history-appt-btn" data-id="${b.id}">View History</button>
           <button class="edit-appt-btn" data-id="${b.id}">Edit</button>
           <button class="delete-appt-btn" data-id="${b.id}">Delete</button>
         </div>
@@ -319,6 +336,13 @@ async function loadAppointments() {
         e.stopPropagation();
         const booking = data.bookings.find((b) => String(b.id) === btn.dataset.id);
         openAppointmentModal(booking);
+      });
+    });
+
+    list.querySelectorAll(".history-appt-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openAppointmentHistoryModal(btn.dataset.id);
       });
     });
 
@@ -766,6 +790,82 @@ async function openEmailHistoryModal(clientId) {
 function setupEmailHistoryModal() {
   document.getElementById("email-history-modal-close").addEventListener("click", () => {
     document.getElementById("email-history-modal").classList.remove("open");
+  });
+}
+
+/* ---------- Appointment history / audit trail ---------- */
+
+const APPT_HISTORY_ACTION_LABELS = {
+  submitted: "Original Submission",
+  status_changed: "Status Update",
+};
+
+const APPT_DIFF_FIELDS = [
+  { key: "service", label: "Service(s)" },
+  { key: "preferred_date", label: "Date" },
+  { key: "preferred_time", label: "Time" },
+  { key: "notes", label: "Notes" },
+  { key: "phone", label: "Phone" },
+  { key: "email", label: "Email" },
+  { key: "name", label: "Name" },
+  { key: "status", label: "Status" },
+];
+
+function renderApptDiff(before, after) {
+  const rows = APPT_DIFF_FIELDS.filter((f) => String(before[f.key] || "") !== String(after[f.key] || ""))
+    .map(
+      (f) => `
+        <div class="diff-row">
+          <span class="diff-field">${f.label}</span>
+          <span><span class="diff-old">${escapeHtml(before[f.key] || "—")}</span> &rarr; <span class="diff-new">${escapeHtml(after[f.key] || "—")}</span></span>
+        </div>
+      `
+    )
+    .join("");
+  return rows || '<p class="admin-empty">No field changes detected.</p>';
+}
+
+async function openAppointmentHistoryModal(id) {
+  const modal = document.getElementById("appointment-history-modal");
+  const list = document.getElementById("appointment-history-list");
+  list.innerHTML = '<p class="admin-empty">Loading...</p>';
+  modal.classList.add("open");
+
+  try {
+    const data = await api(`booking-history?id=${id}`);
+    const visible = data.history.filter((item) => item.action !== "pre_modification_snapshot");
+
+    if (visible.length === 0) {
+      list.innerHTML = '<p class="admin-empty">No history recorded yet.</p>';
+      return;
+    }
+
+    let lastSnapshot = null;
+    list.innerHTML = visible
+      .map((item) => {
+        const label = APPT_HISTORY_ACTION_LABELS[item.action] || (item.action === "modified" ? (item.changed_by === "client" ? "Client Modification" : "Admin Update") : item.action);
+        let diffHtml = "";
+        if (lastSnapshot && (item.action === "modified" || item.action === "status_changed")) {
+          diffHtml = `<div style="margin-top: 8px;">${renderApptDiff(lastSnapshot, item.snapshot)}</div>`;
+        }
+        lastSnapshot = item.snapshot;
+        return `
+          <div class="history-item">
+            <div class="history-label">${escapeHtml(label)} <span class="admin-time">(${item.changed_by})</span></div>
+            <div class="history-time">${formatDateTime(item.created_at)}</div>
+            ${diffHtml}
+          </div>
+        `;
+      })
+      .join("");
+  } catch (err) {
+    list.innerHTML = '<p class="admin-empty">Could not load the request history.</p>';
+  }
+}
+
+function setupAppointmentHistoryModal() {
+  document.getElementById("appointment-history-modal-close").addEventListener("click", () => {
+    document.getElementById("appointment-history-modal").classList.remove("open");
   });
 }
 
@@ -1562,6 +1662,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNotifDropdown();
   setupEmailComposeModal();
   setupEmailHistoryModal();
+  setupAppointmentHistoryModal();
   setupAppointmentModal();
   setupClientSearch();
   setupServiceModal();

@@ -17,6 +17,12 @@ async function updateAccountNav() {
   if (user) {
     link.textContent = user.full_name ? user.full_name.split(" ")[0] : "Account";
     link.href = "account.html";
+
+    if (!document.getElementById("my-bookings-nav-link")) {
+      const item = document.createElement("li");
+      item.innerHTML = '<a href="appointment-history.html" id="my-bookings-nav-link">My Bookings</a>';
+      link.closest("li").insertAdjacentElement("beforebegin", item);
+    }
   } else {
     link.textContent = "Log In";
     link.href = "login.html";

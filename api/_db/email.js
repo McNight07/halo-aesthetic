@@ -143,7 +143,47 @@ function buildEmail(type, booking) {
     };
   }
 
+  if (type === 'modified') {
+    return {
+      subject: 'Your appointment request was updated — Halo Aesthetic',
+      html: baseLayout({
+        heading: `Request updated, ${firstName}`,
+        intro: `We've received your changes to the appointment request below. It's back in our review queue as Pending, and Sofia will confirm shortly.`,
+        details: detailsTable(booking),
+        footerNote: `Need to make another change? You can edit this request again any time from your account's booking history, as long as it's still pending.`,
+      }),
+    };
+  }
+
   throw new Error(`Unknown email type: ${type}`);
+}
+
+async function sendAdminBookingModifiedEmail(booking, adminEmail) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not set — skipping email send');
+    return;
+  }
+  if (!adminEmail) return;
+
+  const html = baseLayout({
+    heading: 'A client modified their appointment request',
+    intro: `${booking.name} just edited and resubmitted a pending appointment request. Please review the updated details in the admin dashboard.`,
+    details: detailsTable(booking),
+    footerNote: `This request now needs review — open the Appointments tab in the admin dashboard to confirm or update it.`,
+  });
+
+  try {
+    const resend = getResend();
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: adminEmail,
+      replyTo: booking.email || REPLY_TO_ADDRESS,
+      subject: `Client modified appointment request — ${booking.name}`,
+      html,
+    });
+  } catch (err) {
+    console.error(`Failed to send admin modification email for booking ${booking.id}:`, err);
+  }
 }
 
 async function sendBookingEmail(type, booking) {
@@ -274,4 +314,10 @@ async function sendCustomClientEmail({ to, subject, bodyHtml }) {
   });
 }
 
-module.exports = { sendBookingEmail, sendContactNotificationEmail, sendMessageReplyEmail, sendCustomClientEmail };
+module.exports = {
+  sendBookingEmail,
+  sendContactNotificationEmail,
+  sendMessageReplyEmail,
+  sendCustomClientEmail,
+  sendAdminBookingModifiedEmail,
+};

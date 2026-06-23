@@ -1,5 +1,7 @@
 const { getSql } = require('../_db/client');
 const { getSessionUser, verifyPassword, hashPassword, logActivity, sanitizeUser } = require('../_db/auth');
+const { sendBookingEmail, sendAdminBookingModifiedEmail } = require('../_db/email');
+const { isValidEmail } = require('../_db/validate');
 
 const EDITABLE_FIELDS = [
   'full_name',
@@ -173,6 +175,156 @@ async function handleActivity(req, res, user) {
   }
 }
 
+function ownsBooking(booking, user) {
+  return booking.user_id === user.id || booking.email === user.email;
+}
+
+async function handleMyBookings(req, res, user) {
+  const sql = getSql();
+
+  if (req.method === 'GET') {
+    try {
+      const rows = await sql`
+        select * from bookings
+        where user_id = ${user.id} or email = ${user.email}
+        order by created_at desc
+        limit 100
+      `;
+      return res.status(200).json({ bookings: rows });
+    } catch (err) {
+      console.error('my-bookings fetch failed', err);
+      return res.status(500).json({ error: 'Could not load your booking requests.' });
+    }
+  }
+
+  if (req.method === 'PUT') {
+    const { id, name, phone, email, service, date, time, notes } = req.body || {};
+    if (!id || !service || !date || !time) {
+      return res.status(400).json({ error: 'service, date, and time are required' });
+    }
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+
+    try {
+      const existing = await sql`select * from bookings where id = ${id}`;
+      if (existing.length === 0) {
+        return res.status(404).json({ error: 'Booking request not found.' });
+      }
+      const booking = existing[0];
+      if (!ownsBooking(booking, user)) {
+        return res.status(403).json({ error: 'You can only edit your own booking requests.' });
+      }
+      if (booking.status !== 'pending') {
+        return res.status(400).json({ error: 'Only requests that are still pending review can be edited.' });
+      }
+
+      await sql`
+        insert into booking_history (booking_id, changed_by, action, snapshot)
+        values (${id}, 'client', 'pre_modification_snapshot', ${JSON.stringify(booking)})
+      `;
+
+      const rows = await sql`
+        update bookings set
+          name = coalesce(${name}, name),
+          phone = coalesce(${phone}, phone),
+          email = coalesce(${email}, email),
+          service = ${service},
+          preferred_date = ${date},
+          preferred_time = ${time},
+          notes = ${notes || null},
+          status = 'pending',
+          needs_review = true,
+          last_modified_by = 'client',
+          client_modified_at = now(),
+          updated_at = now()
+        where id = ${id}
+        returning *
+      `;
+      const updated = rows[0];
+
+      await sql`
+        insert into booking_history (booking_id, changed_by, action, snapshot)
+        values (${id}, 'client', 'modified', ${JSON.stringify(updated)})
+      `;
+
+      if (updated.client_id && (name || phone || email)) {
+        await sql`
+          update clients set
+            name = coalesce(${name}, name),
+            phone = coalesce(${phone}, phone),
+            email = coalesce(${email}, email)
+          where id = ${updated.client_id}
+        `;
+      }
+
+      await sendBookingEmail('modified', updated);
+      await logActivity(user.id, 'booking_request_modified');
+
+      try {
+        const settingsRows = await sql`select value from business_settings where key = 'general'`;
+        const adminEmail = settingsRows[0] && settingsRows[0].value && settingsRows[0].value.email;
+        if (adminEmail) {
+          await sendAdminBookingModifiedEmail(updated, adminEmail);
+          await sql`
+            insert into client_emails (client_id, booking_id, to_email, subject, body, status)
+            values (${updated.client_id || null}, ${updated.id}, ${adminEmail}, ${'Client modified appointment request'}, ${'Client edited and resubmitted a pending appointment request.'}, 'sent')
+          `;
+        }
+      } catch (notifyErr) {
+        console.error('admin modification notification failed', notifyErr);
+      }
+
+      await sql`
+        insert into client_emails (client_id, booking_id, to_email, subject, body, status)
+        values (${updated.client_id || null}, ${updated.id}, ${updated.email}, ${'Your appointment request was updated'}, ${'Confirmation sent to client after they resubmitted their request.'}, 'sent')
+      `;
+
+      return res.status(200).json({ success: true, booking: updated });
+    } catch (err) {
+      console.error('my-bookings update failed', err);
+      return res.status(500).json({ error: 'Could not update your booking request.' });
+    }
+  }
+
+  res.setHeader('Allow', 'GET, PUT');
+  return res.status(405).json({ error: 'Method not allowed' });
+}
+
+async function handleMyBookingHistory(req, res, user) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { id } = req.query;
+  if (!id) {
+    return res.status(400).json({ error: 'id is required' });
+  }
+
+  try {
+    const sql = getSql();
+    const bookingRows = await sql`select * from bookings where id = ${id}`;
+    if (bookingRows.length === 0) {
+      return res.status(404).json({ error: 'Booking request not found.' });
+    }
+    if (!ownsBooking(bookingRows[0], user)) {
+      return res.status(403).json({ error: 'You can only view your own booking requests.' });
+    }
+
+    const history = await sql`
+      select id, changed_by, action, snapshot, created_at from booking_history
+      where booking_id = ${id}
+      order by created_at asc
+    `;
+
+    return res.status(200).json({ booking: bookingRows[0], history });
+  } catch (err) {
+    console.error('my-booking-history fetch failed', err);
+    return res.status(500).json({ error: 'Could not load the request history.' });
+  }
+}
+
 module.exports = async (req, res) => {
   const action = Array.isArray(req.query.action) ? req.query.action[0] : req.query.action;
 
@@ -186,6 +338,8 @@ module.exports = async (req, res) => {
   if (action === 'notifications') return handleNotifications(req, res, user);
   if (action === 'password') return handlePassword(req, res, user);
   if (action === 'activity') return handleActivity(req, res, user);
+  if (action === 'my-bookings') return handleMyBookings(req, res, user);
+  if (action === 'my-booking-history') return handleMyBookingHistory(req, res, user);
 
   return res.status(404).json({ error: 'Not found' });
 };

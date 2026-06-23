@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Appointment Requests History — Halo Aesthetic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <a href="index.html" class="logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="booking.html" class="btn">Book Now</a></li>
+      <li><a href="login.html" id="account-nav-link" class="btn btn-outline-nav">Log In</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
+  </nav>
+</header>
+
+<section class="hero" style="min-height: 22vh;">
+  <div>
+    <div class="hero-eyebrow">Your Account</div>
+    <h1>Appointment Requests History</h1>
+  </div>
+</section>
+
+<section id="not-logged-in" style="display: none;">
+  <div class="container" style="max-width: 460px; text-align: center;">
+    <p style="color: var(--text-muted); margin-bottom: 24px;">You need to log in to view your booking requests.</p>
+    <a href="login.html" class="btn btn-solid">Log In</a>
+  </div>
+</section>
+
+<section id="history-content" style="display: none;">
+  <div class="container" style="max-width: 860px;">
+
+    <div id="update-banner" class="form-note" style="display: none; margin-bottom: 20px; border-color: rgba(86, 152, 196, 0.35); color: #1c1a14;"></div>
+
+    <div class="form-panel" style="margin-bottom: 24px;">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="filter-search">Search</label>
+          <input type="text" id="filter-search" placeholder="Search by service...">
+        </div>
+        <div class="form-group">
+          <label for="filter-status">Status</label>
+          <select id="filter-status">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="bookings-list"></div>
+  </div>
+</section>
+
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" style="max-width: 600px;">
+    <h3 style="margin-bottom: 6px;">Request <span id="detail-id"></span></h3>
+    <div id="detail-body"></div>
+    <h4 style="margin: 24px 0 4px;">Timeline</h4>
+    <div id="detail-history" class="history-timeline"></div>
+    <div style="text-align: right; margin-top: 20px;">
+      <button type="button" class="btn" id="detail-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="edit-booking-modal">
+  <div class="modal">
+    <h3 style="margin-bottom: 20px;">Edit Booking Request</h3>
+    <form id="edit-booking-form">
+      <input type="hidden" id="eb-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="eb-name">Full Name</label>
+          <input type="text" id="eb-name" required>
+        </div>
+        <div class="form-group">
+          <label for="eb-phone">Phone</label>
+          <input type="tel" id="eb-phone" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="eb-email">Email</label>
+        <input type="email" id="eb-email" required>
+      </div>
+      <div class="form-group">
+        <label for="eb-service">Treatment(s)</label>
+        <input type="text" id="eb-service" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="eb-date">Preferred Date</label>
+          <input type="date" id="eb-date" required>
+        </div>
+        <div class="form-group">
+          <label for="eb-time">Preferred Time</label>
+          <input type="time" id="eb-time" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="eb-notes">Notes / Special Requests (optional)</label>
+        <textarea id="eb-notes" rows="3"></textarea>
+      </div>
+      <p class="form-note">Resubmitting will set this request back to Pending so our team can review your changes.</p>
+      <div style="display: flex; gap: 14px; justify-content: flex-end;">
+        <button type="button" class="btn" id="edit-booking-cancel">Cancel</button>
+        <button type="submit" class="btn btn-solid">Save Changes &amp; Resubmit</button>
+      </div>
+      <div id="edit-booking-status"></div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/auth.js"></script>
+<script src="js/appointment-history.js"></script>
+<a href="feedback.html" class="floating-feedback-btn">Feedback</a>
+</body>
+</html>

@@ -1,6 +1,7 @@
 const { getSql } = require('./_db/client');
 const { isValidEmail, missingFields } = require('./_db/validate');
 const { sendBookingEmail } = require('./_db/email');
+const { getSessionUser } = require('./_db/auth');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -20,6 +21,7 @@ module.exports = async (req, res) => {
 
   try {
     const sql = getSql();
+    const sessionUser = await getSessionUser(req);
 
     let clientRows = await sql`select id from clients where email = ${body.email} and phone = ${body.phone}`;
     let clientId;
@@ -33,9 +35,14 @@ module.exports = async (req, res) => {
     }
 
     const rows = await sql`
-      insert into bookings (name, phone, email, service, preferred_date, preferred_time, notes, client_id)
-      values (${body.name}, ${body.phone}, ${body.email}, ${body.service}, ${body.date}, ${body.time}, ${body.notes || null}, ${clientId})
-      returning id, name, email, service, preferred_date, preferred_time
+      insert into bookings (name, phone, email, service, preferred_date, preferred_time, notes, client_id, user_id, last_modified_by)
+      values (${body.name}, ${body.phone}, ${body.email}, ${body.service}, ${body.date}, ${body.time}, ${body.notes || null}, ${clientId}, ${sessionUser ? sessionUser.id : null}, 'client')
+      returning *
+    `;
+
+    await sql`
+      insert into booking_history (booking_id, changed_by, action, snapshot)
+      values (${rows[0].id}, 'client', 'submitted', ${JSON.stringify(rows[0])})
     `;
 
     await sendBookingEmail('received', rows[0]);
