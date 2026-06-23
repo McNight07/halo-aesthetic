@@ -76,6 +76,7 @@ function showApp() {
   document.getElementById("admin-app").style.display = "flex";
   loadSection("dashboard");
   refreshMessagesBadge();
+  refreshFeedbackBadge();
 }
 
 function setupLogin() {
@@ -140,6 +141,7 @@ function loadSection(name) {
   if (name === "revenue") loadRevenue();
   if (name === "reviews") loadReviews();
   if (name === "messages") loadMessages();
+  if (name === "feedback") loadFeedback();
   if (name === "settings") loadSettings();
 }
 
@@ -987,6 +989,63 @@ async function loadMessages() {
     });
   } catch (err) {
     list.innerHTML = '<p class="admin-empty">Could not load messages.</p>';
+  }
+}
+
+/* ---------- Feedback ---------- */
+
+async function refreshFeedbackBadge() {
+  const badge = document.getElementById("feedback-unread-badge");
+  if (!badge) return;
+  try {
+    const data = await api("feedback");
+    const unread = data.feedback.filter((f) => !f.is_read).length;
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? "inline-flex" : "none";
+  } catch (err) {
+    // ignore
+  }
+}
+
+async function loadFeedback() {
+  const list = document.getElementById("feedback-list");
+  try {
+    const data = await api("feedback");
+
+    list.innerHTML = data.feedback.length === 0
+      ? '<p class="admin-empty">No feedback yet.</p>'
+      : data.feedback.map((f) => `
+          <div class="admin-row-card" style="cursor: default; ${f.is_read ? "" : "border-left: 3px solid var(--gold);"}">
+            <div class="admin-row-main">
+              <h4>${escapeHtml(f.name)} ${f.is_read ? "" : '<span class="admin-pill active" style="margin-left: 8px;">New</span>'}</h4>
+              <div class="admin-row-meta">${f.email ? escapeHtml(f.email) + " &middot; " : ""}${formatDateTime(f.created_at)}</div>
+              <div class="admin-row-meta" style="margin-top: 8px;">${escapeHtml(f.message)}</div>
+            </div>
+            <div class="admin-row-actions">
+              ${f.is_read ? "" : `<button class="mark-read-feedback-btn" data-id="${f.id}">Mark Read</button>`}
+              <button class="delete-feedback-btn" data-id="${f.id}">Delete</button>
+            </div>
+          </div>
+        `).join("");
+
+    document.querySelectorAll(".mark-read-feedback-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await api("feedback", { method: "PUT", body: JSON.stringify({ id: btn.dataset.id, isRead: true }) });
+        loadFeedback();
+        refreshFeedbackBadge();
+      });
+    });
+
+    document.querySelectorAll(".delete-feedback-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await api(`feedback?id=${btn.dataset.id}`, { method: "DELETE" });
+        showToast("Feedback deleted");
+        loadFeedback();
+        refreshFeedbackBadge();
+      });
+    });
+  } catch (err) {
+    list.innerHTML = '<p class="admin-empty">Could not load feedback.</p>';
   }
 }
 

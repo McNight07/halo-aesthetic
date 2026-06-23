@@ -185,6 +185,15 @@ create table if not exists reviews (
   created_at timestamptz default now()
 );
 
+create table if not exists feedback (
+  id serial primary key,
+  name text not null,
+  email text,
+  message text not null,
+  created_at timestamptz default now(),
+  is_read boolean not null default false
+);
+
 create table if not exists business_settings (
   key text primary key,
   value jsonb not null

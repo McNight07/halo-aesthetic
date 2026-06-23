@@ -649,6 +649,55 @@ async function handleMessages(req, res) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
+async function handleFeedback(req, res) {
+  const sql = getSql();
+
+  if (req.method === 'GET') {
+    try {
+      const rows = await sql`select * from feedback order by created_at desc limit 300`;
+      return res.status(200).json({ feedback: rows });
+    } catch (err) {
+      console.error('admin feedback fetch failed', err);
+      return res.status(500).json({ error: 'Could not load feedback.' });
+    }
+  }
+
+  if (req.method === 'PUT') {
+    const { id, isRead } = req.body || {};
+    if (!id) {
+      return res.status(400).json({ error: 'id is required' });
+    }
+    try {
+      const rows = await sql`
+        update feedback set is_read = coalesce(${isRead}, is_read)
+        where id = ${id}
+        returning *
+      `;
+      return res.status(200).json({ feedback: rows[0] });
+    } catch (err) {
+      console.error('admin feedback update failed', err);
+      return res.status(500).json({ error: 'Could not update feedback.' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ error: 'id is required' });
+    }
+    try {
+      await sql`delete from feedback where id = ${id}`;
+      return res.status(200).json({ success: true });
+    } catch (err) {
+      console.error('admin feedback delete failed', err);
+      return res.status(500).json({ error: 'Could not delete feedback.' });
+    }
+  }
+
+  res.setHeader('Allow', 'GET, PUT, DELETE');
+  return res.status(405).json({ error: 'Method not allowed' });
+}
+
 async function handleSettings(req, res) {
   const sql = getSql();
 
@@ -710,6 +759,7 @@ module.exports = async (req, res) => {
   if (action === 'calendar') return handleCalendar(req, res);
   if (action === 'reviews') return handleReviews(req, res);
   if (action === 'messages') return handleMessages(req, res);
+  if (action === 'feedback') return handleFeedback(req, res);
   if (action === 'settings') return handleSettings(req, res);
 
   return res.status(404).json({ error: 'Not found' });

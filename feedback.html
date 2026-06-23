@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Halo Aesthetic is an intimate, by-appointment sanctuary for waxing, threading, and facial artistry in Denver, CO, helmed by Sofia Zamani.">
-<title>Contact — Halo Aesthetic</title>
+<meta name="description" content="Share feedback about your experience with Halo Aesthetic in Denver, CO.">
+<title>Feedback — Halo Aesthetic</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
@@ -20,7 +20,7 @@
       <li><a href="services.html">Services</a></li>
       <li><a href="pricing.html">Pricing</a></li>
       <li><a href="about.html">About</a></li>
-      <li><a href="contact.html" class="active">Contact</a></li>
+      <li><a href="contact.html">Contact</a></li>
       <li><a href="cart.html" class="cart-link" aria-label="View cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align: middle;"><circle cx="9" cy="20" r="1.3" fill="currentColor" stroke="none"/><circle cx="18" cy="20" r="1.3" fill="currentColor" stroke="none"/><path d="M2.5 3h2.2l2.6 12.6a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.95-1.55L20.8 8H6"/></svg> <span class="cart-badge">0</span></a></li>
       <li><a href="booking.html" class="btn">Book Now</a></li>
       <li><a href="login.html" id="account-nav-link" class="btn btn-outline-nav">Log In</a></li>
@@ -32,55 +32,32 @@
   </nav>
 </header>
 
-<section class="hero" style="min-height: 36vh;">
+<section class="hero" style="min-height: 30vh;">
   <div>
-    <div class="hero-eyebrow">Get In Touch</div>
-    <h1>Contact Us</h1>
-    <p>Questions about a treatment, or ready to plan your visit? We'd love to hear from you.</p>
+    <div class="hero-eyebrow">We're Listening</div>
+    <h1>Share Your Feedback</h1>
+    <p>Tell us what you loved, or what we can do better — your thoughts help us improve.</p>
   </div>
 </section>
 
 <section>
-  <div class="container split">
-    <div class="contact-info">
-      <div class="item">
-        <h4>Visit the Studio</h4>
-        <p>An intimate, by-appointment studio in Denver, CO 80203. The exact address is shared once your booking is confirmed.</p>
-      </div>
-      <div class="item">
-        <h4>Call Us</h4>
-        <p>(303) 727-0746</p>
-      </div>
-      <div class="item">
-        <h4>Email Us</h4>
-        <p>haloaesthetic@hotmail.com</p>
-      </div>
-      <div class="item">
-        <h4>Hours</h4>
-        <p>Mon–Fri: 9am – 8pm<br>Sat–Sun: 10am – 6pm</p>
-      </div>
-    </div>
-
+  <div class="container" style="max-width: 560px;">
     <div class="form-panel">
-      <form id="contact-form">
+      <form id="feedback-form">
         <div class="form-group">
-          <label for="c-name">Full Name</label>
-          <input type="text" id="c-name" name="name" required>
+          <label for="f-name">Full Name</label>
+          <input type="text" id="f-name" name="name" required>
         </div>
         <div class="form-group">
-          <label for="c-email">Email</label>
-          <input type="email" id="c-email" name="email" required>
+          <label for="f-email">Email (optional)</label>
+          <input type="email" id="f-email" name="email">
         </div>
         <div class="form-group">
-          <label for="c-phone">Phone Number</label>
-          <input type="tel" id="c-phone" name="phone">
+          <label for="f-message">Your Feedback</label>
+          <textarea id="f-message" name="message" rows="5" required placeholder="What's on your mind?"></textarea>
         </div>
-        <div class="form-group">
-          <label for="c-message">Message</label>
-          <textarea id="c-message" name="message" rows="5" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-solid">Send Message</button>
-        <div id="contact-status"></div>
+        <button type="submit" class="btn btn-solid">Send Feedback</button>
+        <div id="feedback-status"></div>
       </form>
     </div>
   </div>
@@ -106,7 +83,6 @@
       <div>
         <h4>Contact</h4>
         <ul>
-          <li><a href="admin.html">Admin</a></li>
           <li>By appointment — Denver, CO 80203</li>
           <li>(303) 727-0746</li>
           <li>haloaesthetic@hotmail.com</li>
@@ -117,11 +93,11 @@
   </div>
 </footer>
 
-<div class="modal-overlay" id="message-success-modal">
+<div class="modal-overlay" id="feedback-success-modal">
   <div class="modal" style="text-align: center;">
-    <button class="modal-close" id="message-success-close" aria-label="Close">&times;</button>
-    <h3 id="message-success-heading">Thank You</h3>
-    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 14px 0 26px;">Your message has been sent successfully. We'll get back to you within 24 hours by email.<br><br><strong>Don't see it?</strong> Please check your junk/spam folder for our reply.</p>
+    <button class="modal-close" id="feedback-success-close" aria-label="Close">&times;</button>
+    <h3 id="feedback-success-heading">Thank You</h3>
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 14px 0 26px;">Your feedback has been sent successfully. We really appreciate you taking the time to share it with us.</p>
     <a href="index.html" class="btn btn-solid">Done</a>
   </div>
 </div>
@@ -130,5 +106,51 @@
 
 <script src="js/auth.js"></script>
 <script src="js/script.js"></script>
+<script>
+  document.getElementById("feedback-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = document.getElementById("feedback-status");
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const data = Object.fromEntries(new FormData(form).entries());
+
+    submitBtn.disabled = true;
+    status.textContent = "Sending your feedback...";
+    status.className = "";
+
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        status.textContent = "";
+        status.className = "";
+        const modal = document.getElementById("feedback-success-modal");
+        const firstName = (data.name || "").split(" ")[0];
+        document.getElementById("feedback-success-heading").textContent = firstName ? `Thank You, ${firstName}` : "Thank You";
+        modal.classList.add("open");
+        form.reset();
+      } else {
+        status.textContent = result.error || "Something went wrong. Please try again.";
+        status.className = "error";
+      }
+    } catch (err) {
+      status.textContent = "Something went wrong. Please try again.";
+      status.className = "error";
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  const feedbackModal = document.getElementById("feedback-success-modal");
+  document.getElementById("feedback-success-close").addEventListener("click", () => feedbackModal.classList.remove("open"));
+  feedbackModal.addEventListener("click", (e) => {
+    if (e.target === feedbackModal) feedbackModal.classList.remove("open");
+  });
+</script>
 </body>
 </html>
