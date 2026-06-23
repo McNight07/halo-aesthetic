@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  loadGuestFeedback();
+
   const toggle = document.querySelector(".nav-toggle");
   const links = document.querySelector(".nav-links");
   if (toggle && links) {
@@ -321,6 +323,53 @@ function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str == null ? "" : String(str);
   return div.innerHTML;
+}
+
+/* ---------- Homepage guest feedback ---------- */
+
+const FALLBACK_GUEST_FEEDBACK = [
+  { name: "Sarah M.", message: "So relaxing — Sofia's studio feels private and calm, and my legs have never been smoother." },
+  { name: "Jessica T.", message: "Best brow threading I've had. Booking online was effortless and the studio is so cozy." },
+  { name: "Priya K.", message: "Halo is my monthly ritual now. Quick, clean, and professional every single time." },
+];
+
+function feedbackCard(item) {
+  return `
+    <div class="card">
+      <p class="quote">"${escapeHtml(item.message)}"</p>
+      <p class="quote-author">— ${escapeHtml(item.name)}</p>
+    </div>
+  `;
+}
+
+async function loadGuestFeedback() {
+  const topContainer = document.getElementById("guest-feedback-top");
+  if (!topContainer) return;
+  const moreContainer = document.getElementById("guest-feedback-more");
+  const moreBtn = document.getElementById("guest-feedback-more-btn");
+
+  let items = FALLBACK_GUEST_FEEDBACK;
+  try {
+    const response = await fetch("/api/feedback");
+    if (response.ok) {
+      const { feedback } = await response.json();
+      if (Array.isArray(feedback) && feedback.length > 0) items = feedback;
+    }
+  } catch (err) {
+    // fall back to default testimonials
+  }
+
+  topContainer.innerHTML = items.slice(0, 3).map(feedbackCard).join("");
+
+  const rest = items.slice(3);
+  if (rest.length > 0) {
+    moreContainer.innerHTML = rest.map(feedbackCard).join("");
+    moreBtn.style.display = "inline-block";
+    moreBtn.addEventListener("click", () => {
+      moreContainer.style.display = "grid";
+      moreBtn.style.display = "none";
+    });
+  }
 }
 
 function renderServiceRows(container, items) {

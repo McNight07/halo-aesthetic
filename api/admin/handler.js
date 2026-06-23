@@ -663,13 +663,15 @@ async function handleFeedback(req, res) {
   }
 
   if (req.method === 'PUT') {
-    const { id, isRead } = req.body || {};
+    const { id, isRead, isApproved } = req.body || {};
     if (!id) {
       return res.status(400).json({ error: 'id is required' });
     }
     try {
       const rows = await sql`
-        update feedback set is_read = coalesce(${isRead}, is_read)
+        update feedback set
+          is_read = coalesce(${isRead}, is_read),
+          is_approved = coalesce(${isApproved}, is_approved)
         where id = ${id}
         returning *
       `;

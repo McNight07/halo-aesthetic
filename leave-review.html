@@ -100,6 +100,15 @@
   </div>
 </footer>
 
+<div class="modal-overlay" id="review-success-modal">
+  <div class="modal" style="text-align: center;">
+    <button class="modal-close" id="review-success-close" aria-label="Close">&times;</button>
+    <h3 id="review-success-heading">Thank You</h3>
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 14px 0 26px;">We're so grateful you took the time to share your experience with us. Your kind words mean the world to our team.</p>
+    <a href="index.html" class="btn btn-solid">Done</a>
+  </div>
+</div>
+
 <script>
   const params = new URLSearchParams(window.location.search);
   const nameParam = params.get("name");
@@ -141,8 +150,12 @@
       const result = await response.json();
 
       if (response.ok) {
-        status.textContent = "Thank you! Your review has been submitted.";
-        status.className = "success";
+        status.textContent = "";
+        status.className = "";
+        const name = document.getElementById("r-name").value;
+        const firstName = (name || "").split(" ")[0];
+        document.getElementById("review-success-heading").textContent = firstName ? `Thank You, ${firstName}` : "Thank You";
+        document.getElementById("review-success-modal").classList.add("open");
         e.target.reset();
         paintStars(5);
         ratingInput.value = 5;
@@ -156,6 +169,12 @@
     } finally {
       submitBtn.disabled = false;
     }
+  });
+
+  const reviewSuccessModal = document.getElementById("review-success-modal");
+  document.getElementById("review-success-close").addEventListener("click", () => reviewSuccessModal.classList.remove("open"));
+  reviewSuccessModal.addEventListener("click", (e) => {
+    if (e.target === reviewSuccessModal) reviewSuccessModal.classList.remove("open");
   });
 </script>
 </body>

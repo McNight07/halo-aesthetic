@@ -2,8 +2,25 @@ const { getSql } = require('./_db/client');
 const { isNonEmptyString, isValidEmail, missingFields } = require('./_db/validate');
 
 module.exports = async (req, res) => {
+  if (req.method === 'GET') {
+    try {
+      const sql = getSql();
+      const rows = await sql`
+        select name, message, created_at
+        from feedback
+        where is_approved = true
+        order by created_at desc
+        limit 30
+      `;
+      return res.status(200).json({ feedback: rows });
+    } catch (err) {
+      console.error('feedback fetch failed', err);
+      return res.status(500).json({ error: 'Could not load feedback right now.' });
+    }
+  }
+
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
+    res.setHeader('Allow', 'GET, POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 

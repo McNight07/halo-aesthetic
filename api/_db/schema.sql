@@ -194,6 +194,8 @@ create table if not exists feedback (
   is_read boolean not null default false
 );
 
+alter table feedback add column if not exists is_approved boolean not null default false;
+
 create table if not exists business_settings (
   key text primary key,
   value jsonb not null

@@ -1017,16 +1017,26 @@ async function loadFeedback() {
       : data.feedback.map((f) => `
           <div class="admin-row-card" style="cursor: default; ${f.is_read ? "" : "border-left: 3px solid var(--gold);"}">
             <div class="admin-row-main">
-              <h4>${escapeHtml(f.name)} ${f.is_read ? "" : '<span class="admin-pill active" style="margin-left: 8px;">New</span>'}</h4>
+              <h4>${escapeHtml(f.name)} ${f.is_read ? "" : '<span class="admin-pill active" style="margin-left: 8px;">New</span>'}${f.is_approved ? ' <span class="admin-pill active" style="margin-left: 8px; background: var(--gold);">Approved</span>' : ""}</h4>
               <div class="admin-row-meta">${f.email ? escapeHtml(f.email) + " &middot; " : ""}${formatDateTime(f.created_at)}</div>
               <div class="admin-row-meta" style="margin-top: 8px;">${escapeHtml(f.message)}</div>
             </div>
             <div class="admin-row-actions">
+              <button class="approve-feedback-btn" data-id="${f.id}" data-approved="${f.is_approved}" style="background: var(--gold); color: #1c1a14; border-color: var(--gold);">${f.is_approved ? "Unapprove" : "Approve"}</button>
               ${f.is_read ? "" : `<button class="mark-read-feedback-btn" data-id="${f.id}">Mark Read</button>`}
               <button class="delete-feedback-btn" data-id="${f.id}">Delete</button>
             </div>
           </div>
         `).join("");
+
+    document.querySelectorAll(".approve-feedback-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const newApproved = btn.dataset.approved !== "true";
+        await api("feedback", { method: "PUT", body: JSON.stringify({ id: btn.dataset.id, isApproved: newApproved }) });
+        showToast(newApproved ? "Feedback approved" : "Feedback unapproved");
+        loadFeedback();
+      });
+    });
 
     document.querySelectorAll(".mark-read-feedback-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
