@@ -6,6 +6,7 @@
     "dev": "node dev-server.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
     "@neondatabase/serverless": "^0.10.4",
     "bcryptjs": "^3.0.3",
     "dotenv": "^16.4.5",

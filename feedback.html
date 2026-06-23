@@ -52,6 +52,14 @@
           <label for="f-email">Email (optional)</label>
           <input type="email" id="f-email" name="email">
         </div>
+        <div class="form-group" style="background: var(--cream, #f6f1e3); border: 1px solid #e3dcc7; border-radius: 10px; padding: 14px 16px; margin-bottom: 18px;">
+          <label for="f-ai-prompt" style="margin-bottom: 6px;">Need help writing it? Tell us briefly what you liked &mdash; AI will draft it for you</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <input type="text" id="f-ai-prompt" placeholder="e.g. loved my facial, Sofia was so professional" style="flex: 1; min-width: 180px;">
+            <button type="button" id="f-ai-write-btn" class="btn" style="white-space: nowrap;">Write with AI</button>
+          </div>
+          <div id="f-ai-status" style="margin-top: 8px; font-size: 0.85rem;"></div>
+        </div>
         <div class="form-group">
           <label for="f-message">Your Feedback</label>
           <textarea id="f-message" name="message" rows="5" required placeholder="What's on your mind?"></textarea>
@@ -107,6 +115,45 @@
 <script src="js/auth.js"></script>
 <script src="js/script.js"></script>
 <script>
+  document.getElementById("f-ai-write-btn").addEventListener("click", async () => {
+    const promptInput = document.getElementById("f-ai-prompt");
+    const aiStatus = document.getElementById("f-ai-status");
+    const aiBtn = document.getElementById("f-ai-write-btn");
+    const prompt = promptInput.value.trim();
+    if (!prompt) {
+      aiStatus.textContent = "Tell us a bit about your experience first.";
+      aiStatus.className = "error";
+      return;
+    }
+
+    aiBtn.disabled = true;
+    aiStatus.textContent = "Writing your feedback...";
+    aiStatus.className = "";
+
+    try {
+      const response = await fetch("/api/ai-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        document.getElementById("f-message").value = result.draft;
+        aiStatus.textContent = "Draft added below — feel free to edit it.";
+        aiStatus.className = "success";
+      } else {
+        aiStatus.textContent = result.error || "Could not write a draft. Please try again.";
+        aiStatus.className = "error";
+      }
+    } catch (err) {
+      aiStatus.textContent = "Could not write a draft. Please try again.";
+      aiStatus.className = "error";
+    } finally {
+      aiBtn.disabled = false;
+    }
+  });
+
   document.getElementById("feedback-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const form = e.target;
