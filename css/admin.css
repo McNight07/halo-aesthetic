@@ -16,6 +16,18 @@
   color: #b8b0a0;
 }
 
+/* The site-wide .btn is a near-black border/text meant for light
+   backgrounds — invisible on this dark admin page without an override. */
+.admin-body .btn {
+  border-color: #f3efe7;
+  color: #f3efe7;
+}
+
+.admin-body .btn:hover {
+  background: #f3efe7;
+  color: #0e0c09;
+}
+
 .admin-body .form-note {
   color: #b8b0a0;
 }
