@@ -188,7 +188,7 @@ create table if not exists business_settings (
 
 insert into business_settings (key, value) values
   ('business_hours', '{"mon_fri": "9am - 8pm", "sat_sun": "10am - 6pm"}'),
-  ('general', '{"phone": "(303) 727-0746", "email": "sofiazamani7@gmail.com", "address": "By appointment — Denver, CO 80203"}')
+  ('general', '{"phone": "(303) 727-0746", "email": "haloaesthetic@hotmail.com", "address": "By appointment — Denver, CO 80203"}')
 on conflict (key) do nothing;
 
 -- Backfill: create a client row per distinct contact found in existing bookings,

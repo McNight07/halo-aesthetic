@@ -1,6 +1,7 @@
 const { Resend } = require('resend');
 
-const FROM_ADDRESS = 'Sofia Zamani — Halo Aesthetic <onboarding@resend.dev>';
+const FROM_ADDRESS = 'Halo Aesthetic <onboarding@resend.dev>';
+const REPLY_TO_ADDRESS = 'haloaesthetic@hotmail.com';
 
 function getResend() {
   if (!process.env.RESEND_API_KEY) {
@@ -35,7 +36,7 @@ function baseLayout({ heading, intro, details, footerNote }) {
       </div>
       <div style="background:#efe8d4; padding:20px 36px; text-align:center; font-size:12px; color:#6b6558;">
         Halo Aesthetic · Denver, CO · (303) 727-0746<br>
-        <span style="color:#9c6a2e;">sofiazamani7@gmail.com</span>
+        <span style="color:#9c6a2e;">haloaesthetic@hotmail.com</span>
       </div>
     </div>
   </div>
@@ -116,6 +117,7 @@ async function sendBookingEmail(type, booking) {
     await resend.emails.send({
       from: FROM_ADDRESS,
       to: booking.email,
+      replyTo: REPLY_TO_ADDRESS,
       subject,
       html,
     });
