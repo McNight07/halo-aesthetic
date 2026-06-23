@@ -1,6 +1,10 @@
 .admin-body {
   background: #0e0c09;
   color: #f3efe7;
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* The site-wide h1-h4 default color is a near-black meant for light
@@ -13,7 +17,36 @@
 }
 
 .admin-body .form-group label {
-  color: #b8b0a0;
+  color: #c7c0b2;
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.4px;
+}
+
+/* The site-wide form-group input/select/textarea is light-themed
+   (cream background, near-black text) — needs a dark override here,
+   same reasoning as the .btn and .modal overrides above. */
+.admin-body .form-group input,
+.admin-body .form-group select,
+.admin-body .form-group textarea {
+  background: rgba(243, 239, 231, 0.04);
+  border: 1px solid #3a352c;
+  color: #f3efe7;
+  color-scheme: dark;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.admin-body .form-group input:focus,
+.admin-body .form-group select:focus,
+.admin-body .form-group textarea:focus {
+  border-color: var(--gold-light);
+}
+
+.admin-body .form-group input[readonly] {
+  color: #c7c0b2;
+  cursor: default;
 }
 
 /* The site-wide .btn is a near-black border/text meant for light
@@ -21,6 +54,8 @@
 .admin-body .btn {
   border-color: #f3efe7;
   color: #f3efe7;
+  font-weight: 600;
+  font-size: 0.88rem;
 }
 
 .admin-body .btn:hover {
@@ -100,10 +135,11 @@
   text-align: left;
   background: none;
   border: none;
-  color: #b8b0a0;
-  font-family: var(--font-sans);
-  font-size: 0.92rem;
-  padding: 12px 14px;
+  color: #c7c0b2;
+  font-family: "Inter", sans-serif;
+  font-size: 0.94rem;
+  font-weight: 500;
+  padding: 13px 14px;
   border-radius: 10px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
@@ -165,7 +201,11 @@
 }
 
 .admin-section-title {
-  font-size: 1.7rem;
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 1.8rem;
+  letter-spacing: -0.3px;
   margin-bottom: 28px;
 }
 
@@ -233,21 +273,22 @@
 .appt-date-badge,
 .appt-time-badge {
   display: inline-block;
-  padding: 3px 10px;
+  padding: 4px 11px;
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   margin-right: 4px;
 }
 
-.appt-date-badge { background: rgba(86, 152, 196, 0.18); color: #6cb2e6; }
-.appt-time-badge { background: rgba(207, 161, 94, 0.2); color: #cfa15e; }
+.appt-date-badge { background: rgba(86, 152, 196, 0.18); color: #8cc6f0; }
+.appt-time-badge { background: rgba(207, 161, 94, 0.2); color: #f0c987; }
 
 .admin-stat-label {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #b8b0a0;
+  letter-spacing: 0.6px;
+  color: #c7c0b2;
   margin-bottom: 8px;
 }
 
@@ -279,7 +320,11 @@
 }
 
 .admin-panel-title {
-  font-size: 1.05rem;
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 1.12rem;
+  letter-spacing: -0.1px;
   margin-bottom: 16px;
   color: #f3efe7;
 }
@@ -297,12 +342,12 @@
   flex: 1;
   min-width: 220px;
   background: rgba(243, 239, 231, 0.04);
-  border: 1px solid #2a2620;
+  border: 1px solid #3a352c;
   color: #f3efe7;
-  padding: 11px 14px;
+  padding: 12px 16px;
   border-radius: 10px;
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
+  font-family: "Inter", sans-serif;
+  font-size: 0.92rem;
 }
 
 .admin-filter-pills {
@@ -313,11 +358,12 @@
 
 .admin-pill {
   background: none;
-  border: 1px solid #2a2620;
-  color: #b8b0a0;
-  padding: 8px 16px;
+  border: 1px solid #3a352c;
+  color: #c7c0b2;
+  padding: 9px 18px;
   border-radius: 999px;
-  font-size: 0.8rem;
+  font-size: 0.83rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -345,35 +391,40 @@
 
 /* Row cards (appointments, clients, services, reviews) */
 .admin-row-card {
-  background: rgba(243, 239, 231, 0.03);
+  background: rgba(243, 239, 231, 0.035);
   border: 1px solid #2a2620;
   border-radius: 14px;
-  padding: 18px 22px;
-  margin-bottom: 12px;
+  padding: 20px 24px;
+  margin-bottom: 14px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
   flex-wrap: wrap;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
 }
 
 .admin-row-card:hover {
-  border-color: rgba(207, 161, 94, 0.4);
+  border-color: rgba(207, 161, 94, 0.45);
+  background: rgba(243, 239, 231, 0.05);
   cursor: pointer;
 }
 
 .admin-row-main h4 {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 1.1rem;
-  color: #f3efe7;
-  margin-bottom: 6px;
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 1.18rem;
+  letter-spacing: -0.1px;
+  color: #ffffff;
+  margin-bottom: 8px;
 }
 
 .admin-row-meta {
-  color: #b8b0a0;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  color: #c7c0b2;
+  font-size: 0.94rem;
+  font-weight: 400;
+  line-height: 1.65;
 }
 
 .admin-row-actions {
@@ -385,32 +436,40 @@
 
 .admin-row-actions select,
 .admin-row-actions button {
-  font-size: 0.78rem;
-  padding: 7px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 14px;
   border-radius: 8px;
   background: #1c1813;
-  border: 1px solid #2a2620;
+  border: 1px solid #3a352c;
   color: #f3efe7;
   color-scheme: dark;
   cursor: pointer;
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.admin-row-actions button:hover {
+  border-color: var(--gold-light);
+  background: rgba(207, 161, 94, 0.1);
 }
 
 /* Status badges */
 .status-badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 5px 13px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
+  letter-spacing: 0.6px;
+  font-weight: 700;
+  border: 1px solid transparent;
 }
 
-.status-pending { background: rgba(207, 161, 94, 0.18); color: #cfa15e; }
-.status-confirmed { background: rgba(86, 152, 196, 0.18); color: #6cb2e6; }
-.status-completed { background: rgba(86, 167, 99, 0.18); color: #7ed18f; }
-.status-cancelled { background: rgba(196, 86, 86, 0.18); color: #e68a8a; }
+.status-pending { background: rgba(207, 161, 94, 0.16); color: #e0b46e; border-color: rgba(207, 161, 94, 0.35); }
+.status-confirmed { background: rgba(86, 152, 196, 0.16); color: #8cc6f0; border-color: rgba(86, 152, 196, 0.35); }
+.status-completed { background: rgba(86, 167, 99, 0.16); color: #93e0a3; border-color: rgba(86, 167, 99, 0.35); }
+.status-cancelled { background: rgba(196, 86, 86, 0.16); color: #f0a0a0; border-color: rgba(196, 86, 86, 0.35); }
 
 .admin-empty {
   color: #6b6558;
@@ -511,39 +570,43 @@
 }
 
 .weekly-day-name {
-  font-size: 0.7rem;
+  font-size: 0.74rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #8a8377;
+  letter-spacing: 0.6px;
+  color: #a39c8e;
 }
 
 .weekly-day-date {
-  font-size: 0.85rem;
-  color: #b8b0a0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f3efe7;
 }
 
 .weekly-appt {
-  background: rgba(207, 161, 94, 0.08);
-  border: 1px solid #2a2620;
+  background: rgba(207, 161, 94, 0.1);
+  border: 1px solid #3a352c;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 7px 9px;
   margin-bottom: 6px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
 
 .weekly-appt:hover {
   border-color: var(--gold-light);
+  background: rgba(207, 161, 94, 0.18);
 }
 
 .weekly-appt-time {
-  color: var(--gold-light);
-  font-weight: 600;
+  color: #f0c987;
+  font-weight: 700;
 }
 
 .weekly-appt-name {
   color: #f3efe7;
+  font-weight: 500;
   display: block;
 }
 
@@ -792,16 +855,22 @@
 .appt-service-line {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 16px;
-  font-size: 0.85rem;
-  padding: 3px 0;
-  color: #d8d2c4;
+  font-size: 0.92rem;
+  padding: 5px 0;
+  color: #ddd6c8;
 }
 
-.appt-service-line span {
-  color: var(--gold-light);
-  font-family: var(--font-serif);
-  font-style: italic;
+.price-value {
+  display: inline-block;
+  color: #f0c987;
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.2px;
+  text-shadow: 0 1px 12px rgba(207, 161, 94, 0.25);
 }
 
 #day-detail-list {
@@ -845,34 +914,42 @@
 }
 
 .appt-service-total {
-  border-top: 1px solid #2a2620;
-  margin-top: 4px;
-  padding-top: 7px;
-  font-weight: 600;
+  border-top: 1px solid #3a352c;
+  margin-top: 6px;
+  padding-top: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
   color: #f3efe7;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.appt-service-total span.price-value {
+  font-size: 1.25rem;
 }
 
 /* The default .modal is light-themed (for the public site's service modal).
-   This admin page's modals reuse dark-themed components (.admin-row-card etc),
-   so the modal shell itself needs to be dark here, not the light default. */
-#appointment-modal .modal,
-#service-edit-modal .modal,
-#day-detail-modal .modal,
-#service-detail-modal .modal {
+   Every modal on this admin page reuses dark-themed components
+   (.admin-row-card etc), so the modal shell itself needs to be dark here,
+   not the light default — scoped to .admin-body so it never touches the
+   public site's modals. */
+.admin-body .modal {
   background: #161310;
   border: 1px solid #2a2620;
 }
 
-#appointment-modal .modal-close,
-#service-edit-modal .modal-close,
-#day-detail-modal .modal-close,
-#service-detail-modal .modal-close {
+.admin-body .modal h3 {
+  font-family: "Inter", sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: -0.2px;
+}
+
+.admin-body .modal-close {
   color: #b8b0a0;
 }
 
-#appointment-modal .modal-close:hover,
-#service-edit-modal .modal-close:hover,
-#day-detail-modal .modal-close:hover,
-#service-detail-modal .modal-close:hover {
+.admin-body .modal-close:hover {
   color: #f3efe7;
 }

@@ -268,7 +268,7 @@ async function loadAppointments() {
     list.innerHTML = data.bookings.map((b) => {
       const { items, totalCents } = parseServiceLine(b.service);
       const servicesHtml = items
-        .map((item) => `<div class="appt-service-line"><span class="appt-service-name">${escapeHtml(item.name)}</span> <span>${formatCents(item.priceCents)}</span></div>`)
+        .map((item) => `<div class="appt-service-line"><span class="appt-service-name">${escapeHtml(item.name)}</span> <span class="price-value">${formatCents(item.priceCents)}</span></div>`)
         .join("");
       return `
       <div class="admin-row-card" data-id="${b.id}">
@@ -277,7 +277,7 @@ async function loadAppointments() {
           <div class="admin-row-meta">
             <div class="appt-services-list">
               ${servicesHtml}
-              <div class="appt-service-line appt-service-total">Total <span>${formatCents(totalCents)}</span></div>
+              <div class="appt-service-line appt-service-total">Total <span class="price-value">${formatCents(totalCents)}</span></div>
             </div>
             <span class="appt-date-badge">${formatDate(b.preferred_date)}</span>
             <span class="appt-time-badge">${formatTime(b.preferred_time)}</span><br>
@@ -442,15 +442,22 @@ function openWeekDayModal(dayName, dateKeyValue, dayBookings) {
   list.innerHTML = dayBookings.length === 0
     ? '<div class="admin-empty">No appointments scheduled for this day.</div>'
     : dayBookings.map((b) => {
-        const { items } = parseServiceLine(b.service);
+        const { items, totalCents } = parseServiceLine(b.service);
         const serviceNames = items.map((item) => item.name).join(", ");
         return `
           <div class="admin-row-card week-day-modal-item" data-id="${b.id}" style="cursor: pointer;">
             <div class="admin-row-main">
               <h4>${escapeHtml(b.name)}</h4>
               <div class="admin-row-meta">${escapeHtml(serviceNames)}</div>
+              <div class="admin-row-meta" style="margin-top: 6px;">
+                <span class="appt-date-badge">${formatDate(dateKeyValue)}</span>
+                <span class="appt-time-badge">${formatTime(b.preferred_time)}</span>
+              </div>
             </div>
-            <span class="appt-time-badge">${formatTime(b.preferred_time)}</span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+              <span class="price-value">${formatCents(totalCents)}</span>
+              <span class="status-badge status-${b.status}">${b.status}</span>
+            </div>
           </div>
         `;
       }).join("");
@@ -1033,7 +1040,7 @@ async function openPeriodDetail(label, from, to) {
     list.innerHTML = bookings
       .map((b) => {
         const { items } = parseServiceLine(b.service);
-        const servicesHtml = items.map((item) => `<div class="appt-service-line">${escapeHtml(item.name)} <span>${formatCents(item.priceCents)}</span></div>`).join("");
+        const servicesHtml = items.map((item) => `<div class="appt-service-line">${escapeHtml(item.name)} <span class="price-value">${formatCents(item.priceCents)}</span></div>`).join("");
         return `
           <div class="admin-row-card" style="cursor: default;">
             <div class="admin-row-main">
@@ -1147,7 +1154,7 @@ async function openDayDetail(dateKey) {
     list.innerHTML = bookings
       .map((b) => {
         const { items } = parseServiceLine(b.service);
-        const servicesHtml = items.map((item) => `<div class="appt-service-line">${escapeHtml(item.name)} <span>${formatCents(item.priceCents)}</span></div>`).join("");
+        const servicesHtml = items.map((item) => `<div class="appt-service-line">${escapeHtml(item.name)} <span class="price-value">${formatCents(item.priceCents)}</span></div>`).join("");
         return `
           <div class="admin-row-card" style="cursor: default;">
             <div class="admin-row-main">
