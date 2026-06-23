@@ -1,6 +1,6 @@
 const { Resend } = require('resend');
 
-const FROM_ADDRESS = 'Halo Aesthetic <onboarding@resend.dev>';
+const FROM_ADDRESS = 'Halo Aesthetic <hello@haloaesthetic.com>';
 const REPLY_TO_ADDRESS = 'haloaesthetic@hotmail.com';
 
 function getResend() {
