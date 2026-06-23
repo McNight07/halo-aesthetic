@@ -292,6 +292,7 @@ async function loadAppointments() {
             <option value="completed" ${b.status === "completed" ? "selected" : ""}>Completed</option>
             <option value="cancelled" ${b.status === "cancelled" ? "selected" : ""}>Cancelled</option>
           </select>
+          <button class="email-appt-btn" data-id="${b.id}">E-Mail</button>
           <button class="edit-appt-btn" data-id="${b.id}">Edit</button>
           <button class="delete-appt-btn" data-id="${b.id}">Delete</button>
         </div>
@@ -316,6 +317,14 @@ async function loadAppointments() {
         e.stopPropagation();
         const booking = data.bookings.find((b) => String(b.id) === btn.dataset.id);
         openAppointmentModal(booking);
+      });
+    });
+
+    list.querySelectorAll(".email-appt-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const booking = data.bookings.find((b) => String(b.id) === btn.dataset.id);
+        if (booking) openEmailComposeModal({ clientId: booking.client_id, bookingId: booking.id, email: booking.email, name: booking.name });
       });
     });
 
@@ -597,6 +606,143 @@ function setupAppointmentModal() {
   });
 }
 
+/* ---------- Email composer ---------- */
+
+const EMAIL_TEMPLATES = {
+  reminder: {
+    subject: "Reminder: Your Upcoming Appointment at Halo Aesthetic",
+    body: (name) => `<p>Hi ${name},</p><p>Just a friendly reminder about your upcoming appointment with us. We're looking forward to seeing you!</p><p>If you need to reschedule, just reply to this email or give us a call.</p>`,
+  },
+  confirmation: {
+    subject: "Your Appointment is Confirmed — Halo Aesthetic",
+    body: (name) => `<p>Hi ${name},</p><p>This confirms your appointment with us. Here's a quick summary:</p><ul><li>Service: </li><li>Date: </li><li>Time: </li></ul><p>We can't wait to see you!</p>`,
+  },
+  reschedule: {
+    subject: "Let's Find a New Time — Halo Aesthetic",
+    body: (name) => `<p>Hi ${name},</p><p>We need to reschedule your upcoming appointment. Could you let us know a few times that work for you, and we'll find the best fit?</p><p>Sorry for any inconvenience — we appreciate your flexibility.</p>`,
+  },
+  cancellation: {
+    subject: "Your Appointment Has Been Cancelled — Halo Aesthetic",
+    body: (name) => `<p>Hi ${name},</p><p>This is to confirm that your appointment has been cancelled. If you'd like to rebook, just reply to this email or call us at (303) 727-0746.</p><p>We hope to see you again soon.</p>`,
+  },
+  thankyou: {
+    subject: "Thank You for Visiting Halo Aesthetic",
+    body: (name) => `<p>Hi ${name},</p><p>Thank you so much for visiting us — it was a pleasure having you in the studio. We hope you're loving your results!</p><p>If you have a moment, we'd love to hear your feedback.</p>`,
+  },
+};
+
+function openEmailComposeModal(target) {
+  const modal = document.getElementById("email-compose-modal");
+  document.getElementById("email-client-id").value = target.clientId || "";
+  document.getElementById("email-booking-id").value = target.bookingId || "";
+  document.getElementById("email-to").value = target.email || "";
+  document.getElementById("email-to").dataset.name = target.name || "";
+  document.getElementById("email-template").value = "";
+  document.getElementById("email-subject").value = "";
+  document.getElementById("email-body").innerHTML = "";
+  document.getElementById("email-compose-status").textContent = "";
+  document.getElementById("email-compose-status").className = "";
+  modal.classList.add("open");
+}
+
+function setupEmailComposeModal() {
+  const closeModal = () => document.getElementById("email-compose-modal").classList.remove("open");
+  document.getElementById("email-compose-modal-close").addEventListener("click", closeModal);
+  document.getElementById("email-cancel-btn").addEventListener("click", closeModal);
+
+  document.querySelectorAll(".email-editor-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.getElementById("email-body").focus();
+      document.execCommand(btn.dataset.cmd);
+    });
+  });
+
+  document.getElementById("email-template").addEventListener("change", (e) => {
+    const key = e.target.value;
+    const firstName = (document.getElementById("email-to").dataset.name || "").split(" ")[0] || "there";
+    if (!key) {
+      document.getElementById("email-subject").value = "";
+      document.getElementById("email-body").innerHTML = "";
+      return;
+    }
+    const tpl = EMAIL_TEMPLATES[key];
+    document.getElementById("email-subject").value = tpl.subject;
+    document.getElementById("email-body").innerHTML = tpl.body(firstName);
+  });
+
+  document.getElementById("email-compose-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = document.getElementById("email-compose-status");
+    const sendBtn = document.getElementById("email-send-btn");
+    const body = document.getElementById("email-body").innerHTML.trim();
+
+    if (!body) {
+      status.textContent = "Please write a message.";
+      status.className = "error";
+      return;
+    }
+
+    const payload = {
+      clientId: document.getElementById("email-client-id").value || null,
+      bookingId: document.getElementById("email-booking-id").value || null,
+      to: document.getElementById("email-to").value,
+      subject: document.getElementById("email-subject").value,
+      body,
+    };
+
+    sendBtn.disabled = true;
+    sendBtn.classList.add("btn-loading");
+    sendBtn.textContent = "Sending...";
+    status.textContent = "";
+    status.className = "";
+
+    try {
+      await api("client-email", { method: "POST", body: JSON.stringify(payload) });
+      status.textContent = "Email sent successfully.";
+      status.className = "success";
+      showToast("Email sent");
+      setTimeout(() => document.getElementById("email-compose-modal").classList.remove("open"), 900);
+    } catch (err) {
+      status.textContent = err.message || "Could not send the email. Please try again.";
+      status.className = "error";
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.classList.remove("btn-loading");
+      sendBtn.textContent = "Send Email";
+    }
+  });
+}
+
+async function openEmailHistoryModal(clientId) {
+  const modal = document.getElementById("email-history-modal");
+  const list = document.getElementById("email-history-list");
+  list.innerHTML = '<p class="admin-empty">Loading...</p>';
+  modal.classList.add("open");
+
+  try {
+    const data = await api(`client-email?clientId=${clientId}`);
+    list.innerHTML = data.emails.length === 0
+      ? '<p class="admin-empty">No emails sent yet.</p>'
+      : data.emails.map((e) => `
+          <div class="admin-row-card" style="cursor: default;">
+            <div class="admin-row-main">
+              <h4>${escapeHtml(e.subject)}</h4>
+              <div class="admin-row-meta">${formatDateTime(e.created_at)} &middot; to ${escapeHtml(e.to_email)}</div>
+              <div class="admin-row-meta" style="margin-top: 8px;">${e.body.replace(/<[^>]+>/g, " ").trim().slice(0, 160)}</div>
+            </div>
+          </div>
+        `).join("");
+  } catch (err) {
+    list.innerHTML = '<p class="admin-empty">Could not load email history.</p>';
+  }
+}
+
+function setupEmailHistoryModal() {
+  document.getElementById("email-history-modal-close").addEventListener("click", () => {
+    document.getElementById("email-history-modal").classList.remove("open");
+  });
+}
+
 /* ---------- Clients ---------- */
 
 async function loadClients(search) {
@@ -645,6 +791,10 @@ async function openClientDetail(id) {
       <div class="admin-row-meta" style="margin-bottom: 18px;">
         ${escapeHtml(client.email || "")}<br>${escapeHtml(client.phone || "")}
       </div>
+      <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+        <button class="btn" id="email-client-btn">E-Mail Client</button>
+        <button class="btn" id="view-email-history-btn">View Email History</button>
+      </div>
       <div class="form-group">
         <label>Treatment Notes</label>
         <textarea id="client-notes-input" rows="4">${escapeHtml(client.notes || "")}</textarea>
@@ -664,6 +814,14 @@ async function openClientDetail(id) {
             </div>
           `).join("")}
     `;
+
+    document.getElementById("email-client-btn").addEventListener("click", () => {
+      openEmailComposeModal({ clientId: client.id, email: client.email, name: client.name });
+    });
+
+    document.getElementById("view-email-history-btn").addEventListener("click", () => {
+      openEmailHistoryModal(client.id);
+    });
 
     document.getElementById("save-client-notes-btn").addEventListener("click", async () => {
       const notesStatus = document.getElementById("client-notes-status");
@@ -1348,6 +1506,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAppointmentFilters();
   setupWeekNav();
   setupNotifDropdown();
+  setupEmailComposeModal();
+  setupEmailHistoryModal();
   setupAppointmentModal();
   setupClientSearch();
   setupServiceModal();

@@ -249,4 +249,29 @@ async function sendMessageReplyEmail(message, replyText) {
   }
 }
 
-module.exports = { sendBookingEmail, sendContactNotificationEmail, sendMessageReplyEmail };
+async function sendCustomClientEmail({ to, subject, bodyHtml }) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not set');
+  }
+  if (!to) {
+    throw new Error('Recipient email is required');
+  }
+
+  const html = baseLayout({
+    heading: subject,
+    intro: '',
+    details: `<div style="font-size:15px; line-height:1.6; color:#3a362e;">${bodyHtml}</div>`,
+    footerNote: `Reply directly to this email if you have any questions, or call (303) 727-0746.`,
+  });
+
+  const resend = getResend();
+  await resend.emails.send({
+    from: FROM_ADDRESS,
+    to,
+    replyTo: REPLY_TO_ADDRESS,
+    subject,
+    html,
+  });
+}
+
+module.exports = { sendBookingEmail, sendContactNotificationEmail, sendMessageReplyEmail, sendCustomClientEmail };

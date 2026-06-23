@@ -1,7 +1,8 @@
 const crypto = require('crypto');
 const { getSql } = require('../_db/client');
 const { createSessionToken, isAdminAuthenticated, setSessionCookie, clearSessionCookie } = require('../_db/admin-auth');
-const { sendBookingEmail, sendMessageReplyEmail } = require('../_db/email');
+const { sendBookingEmail, sendMessageReplyEmail, sendCustomClientEmail } = require('../_db/email');
+const { isValidEmail, isNonEmptyString } = require('../_db/validate');
 
 function safeCompare(a, b) {
   const bufA = Buffer.from(String(a));
@@ -370,6 +371,53 @@ async function handleClientNotes(req, res) {
     console.error('client notes update failed', err);
     return res.status(500).json({ error: 'Could not save notes.' });
   }
+}
+
+async function handleClientEmail(req, res) {
+  const sql = getSql();
+
+  if (req.method === 'GET') {
+    const { clientId } = req.query;
+    if (!clientId) {
+      return res.status(400).json({ error: 'clientId is required' });
+    }
+    try {
+      const rows = await sql`select * from client_emails where client_id = ${clientId} order by created_at desc limit 100`;
+      return res.status(200).json({ emails: rows });
+    } catch (err) {
+      console.error('client email history fetch failed', err);
+      return res.status(500).json({ error: 'Could not load email history.' });
+    }
+  }
+
+  if (req.method === 'POST') {
+    const { clientId, bookingId, to, subject, body } = req.body || {};
+    if (!isValidEmail(to) || !isNonEmptyString(subject) || !isNonEmptyString(body)) {
+      return res.status(400).json({ error: 'A valid recipient, subject, and message are required.' });
+    }
+
+    try {
+      await sendCustomClientEmail({ to, subject, bodyHtml: body });
+    } catch (err) {
+      console.error('client email send failed', err);
+      return res.status(502).json({ error: 'Could not send the email. Please try again.' });
+    }
+
+    try {
+      const rows = await sql`
+        insert into client_emails (client_id, booking_id, to_email, subject, body)
+        values (${clientId || null}, ${bookingId || null}, ${to}, ${subject}, ${body})
+        returning *
+      `;
+      return res.status(201).json({ email: rows[0] });
+    } catch (err) {
+      console.error('client email log failed', err);
+      return res.status(200).json({ warning: 'Email sent, but could not save it to the client history.' });
+    }
+  }
+
+  res.setHeader('Allow', 'GET, POST');
+  return res.status(405).json({ error: 'Method not allowed' });
 }
 
 async function handleServicesAdmin(req, res) {
@@ -756,6 +804,7 @@ module.exports = async (req, res) => {
   if (action === 'clients') return handleClients(req, res);
   if (action === 'client-detail') return handleClientDetail(req, res);
   if (action === 'client-notes') return handleClientNotes(req, res);
+  if (action === 'client-email') return handleClientEmail(req, res);
   if (action === 'services-admin') return handleServicesAdmin(req, res);
   if (action === 'revenue') return handleRevenue(req, res);
   if (action === 'calendar') return handleCalendar(req, res);

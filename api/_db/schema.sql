@@ -196,6 +196,17 @@ create table if not exists feedback (
 
 alter table feedback add column if not exists is_approved boolean not null default false;
 
+create table if not exists client_emails (
+  id serial primary key,
+  client_id integer references clients(id) on delete cascade,
+  booking_id integer references bookings(id) on delete set null,
+  to_email text not null,
+  subject text not null,
+  body text not null,
+  status text not null default 'sent',
+  created_at timestamptz default now()
+);
+
 create table if not exists business_settings (
   key text primary key,
   value jsonb not null

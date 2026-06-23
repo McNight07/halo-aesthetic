@@ -296,6 +296,58 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="email-compose-modal">
+  <div class="modal" style="max-width: 600px;">
+    <button class="modal-close" id="email-compose-modal-close" aria-label="Close">&times;</button>
+    <h3>Email Client</h3>
+    <form id="email-compose-form" style="margin-top: 18px;">
+      <input type="hidden" id="email-client-id">
+      <input type="hidden" id="email-booking-id">
+      <div class="form-group">
+        <label for="email-to">To</label>
+        <input type="email" id="email-to" required readonly>
+      </div>
+      <div class="form-group">
+        <label for="email-template">Template</label>
+        <select id="email-template">
+          <option value="">Custom Message</option>
+          <option value="reminder">Appointment Reminder</option>
+          <option value="confirmation">Appointment Confirmation</option>
+          <option value="reschedule">Reschedule Request</option>
+          <option value="cancellation">Cancellation Notice</option>
+          <option value="thankyou">Follow-Up Thank You</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="email-subject">Subject</label>
+        <input type="text" id="email-subject" required>
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <div class="email-editor-toolbar">
+          <button type="button" class="email-editor-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
+          <button type="button" class="email-editor-btn" data-cmd="italic" title="Italic"><em>I</em></button>
+          <button type="button" class="email-editor-btn" data-cmd="insertUnorderedList" title="Bullet list">&#8226; List</button>
+        </div>
+        <div id="email-body" class="email-editor-body" contenteditable="true" spellcheck="true"></div>
+      </div>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button type="submit" class="btn btn-solid" id="email-send-btn">Send Email</button>
+        <button type="button" class="btn" id="email-cancel-btn">Cancel</button>
+      </div>
+      <div id="email-compose-status"></div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="email-history-modal">
+  <div class="modal" style="max-width: 540px;">
+    <button class="modal-close" id="email-history-modal-close" aria-label="Close">&times;</button>
+    <h3>Email History</h3>
+    <div id="email-history-list" class="week-day-modal-list"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="service-edit-modal">
   <div class="modal">
     <button class="modal-close" id="service-edit-modal-close" aria-label="Close">&times;</button>
