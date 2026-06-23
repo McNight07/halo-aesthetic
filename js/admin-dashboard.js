@@ -266,7 +266,7 @@ async function loadAppointments() {
     list.innerHTML = data.bookings.map((b) => {
       const { items, totalCents } = parseServiceLine(b.service);
       const servicesHtml = items
-        .map((item) => `<div class="appt-service-line">${escapeHtml(item.name)} <span>${formatCents(item.priceCents)}</span></div>`)
+        .map((item) => `<div class="appt-service-line"><span class="appt-service-name">${escapeHtml(item.name)}</span> <span>${formatCents(item.priceCents)}</span></div>`)
         .join("");
       return `
       <div class="admin-row-card" data-id="${b.id}">
@@ -277,7 +277,8 @@ async function loadAppointments() {
               ${servicesHtml}
               <div class="appt-service-line appt-service-total">Total <span>${formatCents(totalCents)}</span></div>
             </div>
-            ${formatDate(b.preferred_date)} at ${formatTime(b.preferred_time)}<br>
+            <span class="appt-date-badge">${formatDate(b.preferred_date)}</span>
+            <span class="appt-time-badge">${formatTime(b.preferred_time)}</span><br>
             ${escapeHtml(b.phone)} · ${escapeHtml(b.email)}
             ${b.notes ? `<br>Notes: ${escapeHtml(b.notes)}` : ""}
           </div>
@@ -290,6 +291,7 @@ async function loadAppointments() {
             <option value="cancelled" ${b.status === "cancelled" ? "selected" : ""}>Cancelled</option>
           </select>
           <button class="edit-appt-btn" data-id="${b.id}">Edit</button>
+          <button class="delete-appt-btn" data-id="${b.id}">Delete</button>
         </div>
       </div>
     `;
@@ -312,6 +314,20 @@ async function loadAppointments() {
         e.stopPropagation();
         const booking = data.bookings.find((b) => String(b.id) === btn.dataset.id);
         openAppointmentModal(booking);
+      });
+    });
+
+    list.querySelectorAll(".delete-appt-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (!confirm("Delete this appointment? This cannot be undone.")) return;
+        try {
+          await api(`booking-delete?id=${btn.dataset.id}`, { method: "DELETE" });
+          showToast("Appointment deleted");
+          loadAppointments();
+        } catch (err) {
+          showToast(err.message);
+        }
       });
     });
   } catch (err) {
@@ -337,6 +353,33 @@ function setupAppointmentFilters() {
   document.getElementById("new-appointment-btn").addEventListener("click", () => openAppointmentModal(null));
 }
 
+let cachedServiceOptions = null;
+
+async function getServiceOptions() {
+  if (cachedServiceOptions) return cachedServiceOptions;
+  const data = await api("services-admin");
+  cachedServiceOptions = data.services
+    .filter((s) => s.is_active)
+    .map((s) => ({ label: `${s.name} — $${(s.price_cents / 100).toFixed(0)}`, name: s.name, priceCents: s.price_cents }));
+  return cachedServiceOptions;
+}
+
+function populateServiceSelects(selectedItems) {
+  getServiceOptions().then((options) => {
+    [1, 2, 3].forEach((n) => {
+      const select = document.getElementById(`appt-service-${n}`);
+      const selected = selectedItems[n - 1];
+      const optionsHtml = options
+        .map((opt) => `<option value="${escapeHtml(opt.label)}" ${selected && selected.name === opt.name ? "selected" : ""}>${escapeHtml(opt.label)}</option>`)
+        .join("");
+      select.innerHTML = `<option value="">${n === 1 ? "Select a service…" : "None"}</option>${optionsHtml}`;
+      if (selected && !options.some((opt) => opt.name === selected.name)) {
+        select.innerHTML += `<option value="${escapeHtml(selected.name)} — $${Math.round(selected.priceCents / 100)}" selected>${escapeHtml(selected.name)} (inactive) — $${Math.round(selected.priceCents / 100)}</option>`;
+      }
+    });
+  });
+}
+
 function openAppointmentModal(booking) {
   const modal = document.getElementById("appointment-modal");
   document.getElementById("appointment-modal-title").textContent = booking ? "Edit Appointment" : "New Appointment";
@@ -344,14 +387,11 @@ function openAppointmentModal(booking) {
   document.getElementById("appt-name").value = booking ? booking.name : "";
   document.getElementById("appt-phone").value = booking ? booking.phone : "";
   document.getElementById("appt-email").value = booking ? booking.email : "";
-  document.getElementById("appt-service").value = booking ? booking.service : "";
   document.getElementById("appt-date").value = booking ? booking.preferred_date.slice(0, 10) : "";
   document.getElementById("appt-time").value = booking ? formatTime(booking.preferred_time) : "";
   document.getElementById("appt-notes").value = booking ? (booking.notes || "") : "";
-  document.getElementById("appt-name").disabled = !!booking;
-  document.getElementById("appt-phone").disabled = !!booking;
-  document.getElementById("appt-email").disabled = !!booking;
   document.getElementById("appointment-modal-status").textContent = "";
+  populateServiceSelects(booking ? parseServiceLine(booking.service).items : []);
   modal.classList.add("open");
 }
 
@@ -365,11 +405,22 @@ function setupAppointmentModal() {
     const status = document.getElementById("appointment-modal-status");
     const id = document.getElementById("appt-id").value;
 
+    const service = [1, 2, 3]
+      .map((n) => document.getElementById(`appt-service-${n}`).value)
+      .filter(Boolean)
+      .join(", ");
+
+    if (!service) {
+      status.textContent = "Select at least one service.";
+      status.className = "error";
+      return;
+    }
+
     const payload = {
       name: document.getElementById("appt-name").value,
       phone: document.getElementById("appt-phone").value,
       email: document.getElementById("appt-email").value,
-      service: document.getElementById("appt-service").value,
+      service,
       date: document.getElementById("appt-date").value,
       time: document.getElementById("appt-time").value,
       notes: document.getElementById("appt-notes").value,
@@ -487,6 +538,7 @@ function setupClientSearch() {
 
 async function loadServicesAdmin() {
   const list = document.getElementById("services-admin-list");
+  cachedServiceOptions = null;
   try {
     const data = await api("services-admin");
     const groups = {};

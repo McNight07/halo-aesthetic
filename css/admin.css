@@ -506,6 +506,25 @@
   font-style: italic;
 }
 
+.appt-service-line .appt-service-name {
+  color: #8fd0e8;
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.delete-appt-btn,
+.delete-service-btn {
+  color: #e68a8a !important;
+  border-color: rgba(196, 86, 86, 0.35) !important;
+}
+
+.delete-appt-btn:hover,
+.delete-service-btn:hover {
+  background: rgba(196, 86, 86, 0.18) !important;
+  border-color: #e68a8a !important;
+}
+
 .appt-service-total {
   border-top: 1px solid #2a2620;
   margin-top: 4px;

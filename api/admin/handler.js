@@ -186,25 +186,61 @@ async function handleBookingUpdate(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { id, service, date, time, notes } = req.body || {};
+  const { id, name, phone, email, service, date, time, notes } = req.body || {};
   if (!id) {
     return res.status(400).json({ error: 'id is required' });
   }
 
   try {
     const sql = getSql();
-    await sql`
+    const rows = await sql`
       update bookings set
+        name = coalesce(${name}, name),
+        phone = coalesce(${phone}, phone),
+        email = coalesce(${email}, email),
         service = coalesce(${service}, service),
         preferred_date = coalesce(${date}, preferred_date),
         preferred_time = coalesce(${time}, preferred_time),
         notes = coalesce(${notes}, notes)
       where id = ${id}
+      returning client_id
     `;
+
+    if (rows[0] && rows[0].client_id && (name || phone || email)) {
+      await sql`
+        update clients set
+          name = coalesce(${name}, name),
+          phone = coalesce(${phone}, phone),
+          email = coalesce(${email}, email)
+        where id = ${rows[0].client_id}
+      `;
+    }
+
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('booking update failed', err);
     return res.status(500).json({ error: 'Could not update appointment.' });
+  }
+}
+
+async function handleBookingDelete(req, res) {
+  if (req.method !== 'DELETE') {
+    res.setHeader('Allow', 'DELETE');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { id } = req.query;
+  if (!id) {
+    return res.status(400).json({ error: 'id is required' });
+  }
+
+  try {
+    const sql = getSql();
+    await sql`delete from bookings where id = ${id}`;
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('booking delete failed', err);
+    return res.status(500).json({ error: 'Could not delete appointment.' });
   }
 }
 
@@ -642,6 +678,7 @@ module.exports = async (req, res) => {
   if (action === 'bookings') return handleBookings(req, res);
   if (action === 'booking-status') return handleBookingStatus(req, res);
   if (action === 'booking-update') return handleBookingUpdate(req, res);
+  if (action === 'booking-delete') return handleBookingDelete(req, res);
   if (action === 'booking-create') return handleBookingCreate(req, res);
   if (action === 'clients') return handleClients(req, res);
   if (action === 'client-detail') return handleClientDetail(req, res);
