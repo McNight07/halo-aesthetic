@@ -56,6 +56,43 @@ function markSeen(bookingId, updatedAt) {
 }
 
 let allBookings = [];
+let cachedServiceOptions = null;
+
+// booking.service is stored as "Brow Threading — $35, Back Wax — $55" (1-3 items).
+function parseServiceLine(label) {
+  return String(label)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const match = part.match(/^(.*?)\s*—\s*\$(\d+)\s*$/);
+      return match ? { name: match[1].trim(), priceCents: parseInt(match[2], 10) * 100 } : { name: part, priceCents: 0 };
+    });
+}
+
+async function getServiceOptions() {
+  if (cachedServiceOptions) return cachedServiceOptions;
+  const response = await fetch("/api/services");
+  const data = await response.json();
+  cachedServiceOptions = data.services.map((s) => ({
+    label: `${s.name} — $${(s.price_cents / 100).toFixed(0)}`,
+    name: s.name,
+    priceCents: s.price_cents,
+  }));
+  return cachedServiceOptions;
+}
+
+async function populateServiceSelects(selectedItems) {
+  const options = await getServiceOptions();
+  [1, 2, 3].forEach((n) => {
+    const select = document.getElementById(`eb-service-${n}`);
+    const selected = selectedItems[n - 1];
+    const optionsHtml = options
+      .map((opt) => `<option value="${escapeHtml(opt.label)}" ${selected && selected.name === opt.name ? "selected" : ""}>${escapeHtml(opt.label)}</option>`)
+      .join("");
+    select.innerHTML = `<option value="">${n === 1 ? "Select a treatment…" : "None"}</option>${optionsHtml}`;
+  });
+}
 
 async function loadHistoryPage() {
   const user = await getCurrentUser();
@@ -259,11 +296,11 @@ function openEditBookingModal(booking) {
   document.getElementById("eb-name").value = booking.name;
   document.getElementById("eb-phone").value = booking.phone || "";
   document.getElementById("eb-email").value = booking.email || "";
-  document.getElementById("eb-service").value = booking.service;
   document.getElementById("eb-date").value = booking.preferred_date.slice(0, 10);
   document.getElementById("eb-time").value = booking.preferred_time.slice(0, 5);
   document.getElementById("eb-notes").value = booking.notes || "";
   document.getElementById("edit-booking-status").textContent = "";
+  populateServiceSelects(parseServiceLine(booking.service));
   document.getElementById("edit-booking-modal").classList.add("open");
 }
 
@@ -290,12 +327,23 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("edit-booking-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const status = document.getElementById("edit-booking-status");
+    const service = [1, 2, 3]
+      .map((n) => document.getElementById(`eb-service-${n}`).value)
+      .filter(Boolean)
+      .join(", ");
+
+    if (!service) {
+      status.textContent = "Please select at least one treatment.";
+      status.className = "error";
+      return;
+    }
+
     const payload = {
       id: document.getElementById("eb-id").value,
       name: document.getElementById("eb-name").value,
       phone: document.getElementById("eb-phone").value,
       email: document.getElementById("eb-email").value,
-      service: document.getElementById("eb-service").value,
+      service,
       date: document.getElementById("eb-date").value,
       time: document.getElementById("eb-time").value,
       notes: document.getElementById("eb-notes").value,
