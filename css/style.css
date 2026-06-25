@@ -1086,6 +1086,41 @@ footer {
 
   .nav-links li:has(a.cart-link) { display: none; }
 
+  .nav-avatar-item {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .nav-avatar-btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .nav-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .nav-avatar-initials {
+    font-size: 1.3rem;
+  }
+
+  .nav-avatar-dropdown {
+    position: fixed;
+    top: auto;
+    left: 50%;
+    right: auto;
+    bottom: 110px;
+    transform: translate(-50%, 12px);
+    width: min(280px, calc(100vw - 64px));
+  }
+
+  .nav-avatar-dropdown.open {
+    transform: translate(-50%, 0);
+  }
+
   .navbar-mobile-actions {
     display: flex;
     align-items: center;
