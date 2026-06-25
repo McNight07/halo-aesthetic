@@ -23,6 +23,25 @@ function formatDateTime(value) {
 
 let currentUser = null;
 
+function renderDashboardAvatar(user) {
+  const el = document.getElementById("dashboard-avatar");
+  if (!el) return;
+  el.innerHTML = user.photo_url
+    ? `<img src="${user.photo_url}" alt="${user.full_name || "Profile photo"}">`
+    : `<span class="dashboard-avatar-initials">${(user.full_name || "?")
+        .trim()
+        .split(/\s+/)
+        .map((p) => p[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()}</span>`;
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
 async function loadAccount() {
   const user = await getCurrentUser();
   if (!user) {
@@ -34,7 +53,13 @@ async function loadAccount() {
   currentUser = user;
   document.getElementById("not-logged-in").style.display = "none";
   document.getElementById("account-content").style.display = "block";
-  document.getElementById("account-heading").textContent = `Hi, ${user.full_name.split(" ")[0]}`;
+  document.getElementById("account-heading").textContent = `Welcome back, ${user.full_name.split(" ")[0]}`;
+
+  renderDashboardAvatar(user);
+  document.getElementById("d-full-name").textContent = user.full_name || "—";
+  document.getElementById("d-email").textContent = user.email || "—";
+  document.getElementById("d-phone").textContent = user.phone || "—";
+  document.getElementById("d-created").textContent = formatDate(user.created_at);
 
   document.getElementById("p-full-name").value = user.full_name || "";
   document.getElementById("p-username").value = user.username || "";
@@ -56,6 +81,108 @@ async function loadAccount() {
 
   loadNotificationPreferences();
   loadActivity();
+  loadBookings();
+  loadEmailHistory();
+}
+
+function formatServiceDateTime(booking) {
+  return `${formatDate(booking.preferred_date)} at ${booking.preferred_time || ""}`;
+}
+
+async function loadBookings() {
+  const upcomingEl = document.getElementById("upcoming-list");
+  const historyEl = document.getElementById("appointment-history-list");
+  try {
+    const response = await fetch("/api/account/my-bookings");
+    if (!response.ok) throw new Error("failed");
+    const { bookings } = await response.json();
+
+    const upcoming = bookings.filter((b) => ["pending", "confirmed"].includes(b.status));
+    const past = bookings.filter((b) => ["completed", "cancelled"].includes(b.status));
+
+    upcomingEl.innerHTML = upcoming.length
+      ? upcoming
+          .map(
+            (b) => `
+            <div class="admin-card">
+              <div class="admin-card-top">
+                <h4>${b.service}</h4>
+                <span class="dashboard-status-pill ${b.status}">${b.status}</span>
+              </div>
+              <div class="admin-field">${formatServiceDateTime(b)}</div>
+            </div>
+          `
+          )
+          .join("")
+      : '<p class="admin-empty">No upcoming appointments.</p>';
+
+    historyEl.innerHTML = past.length
+      ? past
+          .map(
+            (b) => `
+            <div class="admin-card">
+              <div class="admin-card-top">
+                <h4>${b.service}</h4>
+                <span class="dashboard-status-pill ${b.status}">${b.status}</span>
+              </div>
+              <div class="admin-field">${formatServiceDateTime(b)}</div>
+            </div>
+          `
+          )
+          .join("")
+      : '<p class="admin-empty">No past appointments yet.</p>';
+  } catch (err) {
+    upcomingEl.innerHTML = '<p class="admin-empty">Could not load appointments.</p>';
+    historyEl.innerHTML = '<p class="admin-empty">Could not load appointment history.</p>';
+  }
+}
+
+async function loadEmailHistory() {
+  const list = document.getElementById("email-history-list");
+  try {
+    const response = await fetch("/api/account/email-history");
+    if (!response.ok) throw new Error("failed");
+    const { emails } = await response.json();
+    list.innerHTML = emails.length
+      ? emails
+          .map(
+            (e) => `
+            <div class="admin-card">
+              <div class="admin-card-top">
+                <h4>${e.subject}</h4>
+                <span class="dashboard-status-pill sent">${e.status}</span>
+              </div>
+              <div class="admin-field">${formatDateTime(e.created_at)}</div>
+            </div>
+          `
+          )
+          .join("")
+      : '<p class="admin-empty">No emails sent yet.</p>';
+  } catch (err) {
+    list.innerHTML = '<p class="admin-empty">Could not load email history.</p>';
+  }
+}
+
+function resizeImageFile(file, maxSize = 320, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => {
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 async function loadNotificationPreferences() {
@@ -99,6 +226,36 @@ async function loadActivity() {
 
 document.addEventListener("DOMContentLoaded", () => {
   loadAccount();
+
+  const settingsToggle = document.getElementById("settings-toggle");
+  const settingsBody = document.getElementById("settings-body");
+  settingsToggle.addEventListener("click", () => {
+    settingsBody.classList.toggle("open");
+  });
+
+  document.getElementById("photo-input").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await resizeImageFile(file);
+      const response = await fetch("/api/account/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoUrl: dataUrl }),
+      });
+      if (response.ok) {
+        const { user } = await response.json();
+        currentUser = user;
+        renderDashboardAvatar(user);
+        showToast("Profile photo updated");
+        updateAccountNav();
+      } else {
+        showToast("Could not upload photo");
+      }
+    } catch (err) {
+      showToast("Could not upload photo");
+    }
+  });
 
   document.getElementById("profile-form").addEventListener("submit", async (e) => {
     e.preventDefault();

@@ -12,6 +12,7 @@ const EDITABLE_FIELDS = [
   'location',
   'education',
   'social_links',
+  'photo_url',
 ];
 
 async function handleMe(req, res, user) {
@@ -172,6 +173,27 @@ async function handleActivity(req, res, user) {
   } catch (err) {
     console.error('activity fetch failed', err);
     return res.status(500).json({ error: 'Could not load activity history.' });
+  }
+}
+
+async function handleEmailHistory(req, res, user) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const sql = getSql();
+    const rows = await sql`
+      select id, subject, body, status, created_at from client_emails
+      where to_email = ${user.email}
+      order by created_at desc
+      limit 50
+    `;
+    return res.status(200).json({ emails: rows });
+  } catch (err) {
+    console.error('email history fetch failed', err);
+    return res.status(500).json({ error: 'Could not load your email history.' });
   }
 }
 
@@ -340,6 +362,7 @@ module.exports = async (req, res) => {
   if (action === 'activity') return handleActivity(req, res, user);
   if (action === 'my-bookings') return handleMyBookings(req, res, user);
   if (action === 'my-booking-history') return handleMyBookingHistory(req, res, user);
+  if (action === 'email-history') return handleEmailHistory(req, res, user);
 
   return res.status(404).json({ error: 'Not found' });
 };

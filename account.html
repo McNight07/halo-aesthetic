@@ -22,144 +22,57 @@
       <li><a href="about.html">About</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a href="booking.html" class="btn">Book Now</a></li>
+      <li><a href="login.html" id="account-nav-link" class="btn btn-outline-nav">Log In</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
   </nav>
 </header>
 
-<section class="hero" style="min-height: 26vh;">
-  <div>
-    <div class="hero-eyebrow">Your Account</div>
-    <h1 id="account-heading">My Account</h1>
-  </div>
-</section>
-
-<section id="not-logged-in" style="display: none;">
+<section id="not-logged-in" style="display: none; padding: 80px 0;">
   <div class="container" style="max-width: 460px; text-align: center;">
     <p style="color: var(--text-muted); margin-bottom: 24px;">You need to log in to view your account.</p>
     <a href="login.html" class="btn btn-solid">Log In</a>
   </div>
 </section>
 
-<section id="account-content" style="display: none;">
-  <div class="container" style="max-width: 680px;">
+<section id="account-content" style="display: none; padding: 50px 0 80px;">
+  <div class="container" style="max-width: 920px;">
 
-    <div class="form-panel" style="margin-bottom: 30px;">
-      <h3 style="margin-bottom: 20px;">Profile</h3>
-      <form id="profile-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="p-full-name">Full Name</label>
-            <input type="text" id="p-full-name" name="fullName">
-          </div>
-          <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="p-username" disabled>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="p-email" disabled>
-          </div>
-          <div class="form-group">
-            <label for="p-phone">Phone</label>
-            <input type="tel" id="p-phone" name="phone">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="p-dob">Date of Birth</label>
-            <input type="date" id="p-dob" name="dateOfBirth">
-          </div>
-          <div class="form-group">
-            <label for="p-gender">Gender (optional)</label>
-            <select id="p-gender" name="gender">
-              <option value="">Prefer not to say</option>
-              <option value="female">Female</option>
-              <option value="male">Male</option>
-              <option value="nonbinary">Non-binary</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="p-bio">Bio / About Me</label>
-          <textarea id="p-bio" name="bio" rows="3"></textarea>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="p-location">Location</label>
-            <input type="text" id="p-location" name="location">
-          </div>
-          <div class="form-group">
-            <label for="p-education">Education</label>
-            <input type="text" id="p-education" name="education">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="p-skills">Skills (comma-separated)</label>
-          <input type="text" id="p-skills" placeholder="e.g. Photography, Yoga, Baking">
-        </div>
-        <div class="form-group">
-          <label for="p-interests">Interests (comma-separated)</label>
-          <input type="text" id="p-interests" placeholder="e.g. Travel, Fashion, Music">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="p-instagram">Instagram</label>
-            <input type="text" id="p-instagram" placeholder="@username">
-          </div>
-          <div class="form-group">
-            <label for="p-website">Website</label>
-            <input type="text" id="p-website" placeholder="https://...">
-          </div>
-        </div>
-        <button type="submit" class="btn btn-solid">Save Profile</button>
-        <div id="profile-status"></div>
-      </form>
-    </div>
-
-    <div class="form-panel" style="margin-bottom: 30px;">
-      <h3 style="margin-bottom: 16px;">Privacy</h3>
-      <div class="form-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
-        <input type="checkbox" id="p-is-private" style="width: auto;">
-        <label for="p-is-private" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Make my profile private</label>
+    <div class="dashboard-header">
+      <div class="dashboard-avatar-wrap">
+        <div class="dashboard-avatar" id="dashboard-avatar"></div>
+        <label class="dashboard-avatar-upload" title="Upload profile photo">
+          &#128247;
+          <input type="file" id="photo-input" accept="image/*">
+        </label>
       </div>
-      <div id="privacy-status"></div>
-    </div>
-
-    <div class="form-panel" style="margin-bottom: 30px;">
-      <h3 style="margin-bottom: 16px;">Notification Preferences</h3>
-      <div class="form-group" style="display: flex; align-items: center; gap: 12px;">
-        <input type="checkbox" id="n-booking-reminders" style="width: auto;">
-        <label for="n-booking-reminders" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Email me booking reminders</label>
+      <div class="dashboard-welcome">
+        <h1 id="account-heading">Welcome back</h1>
+        <p>Manage your profile, appointments, and account settings.</p>
       </div>
-      <div class="form-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
-        <input type="checkbox" id="n-marketing" style="width: auto;">
-        <label for="n-marketing" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Email me promotions and news</label>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="dashboard-card">
+        <h3>Profile</h3>
+        <div class="dashboard-info-row"><span>Full Name</span><span id="d-full-name">—</span></div>
+        <div class="dashboard-info-row"><span>Email</span><span id="d-email">—</span></div>
+        <div class="dashboard-info-row"><span>Phone</span><span id="d-phone">—</span></div>
+        <div class="dashboard-info-row"><span>Member Since</span><span id="d-created">—</span></div>
       </div>
-      <button class="btn" id="save-notifications-btn" style="margin-top: 16px;">Save Preferences</button>
-      <div id="notifications-status"></div>
+
+      <div class="dashboard-card">
+        <h3>Upcoming Appointments</h3>
+        <div id="upcoming-list"><p class="admin-empty">Loading...</p></div>
+      </div>
     </div>
 
-    <div class="form-panel" style="margin-bottom: 30px;">
-      <h3 style="margin-bottom: 20px;">Change Password</h3>
-      <form id="password-form">
-        <div class="form-group">
-          <label for="current-password">Current Password</label>
-          <input type="password" id="current-password" required>
-        </div>
-        <div class="form-group">
-          <label for="new-password">New Password</label>
-          <input type="password" id="new-password" minlength="8" required>
-        </div>
-        <button type="submit" class="btn btn-solid">Change Password</button>
-        <div id="password-status"></div>
-      </form>
+    <div class="dashboard-card" style="margin-bottom: 20px;">
+      <h3>Appointment History</h3>
+      <div id="appointment-history-list"><p class="admin-empty">Loading...</p></div>
     </div>
 
-    <div class="form-panel" style="margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+    <div class="dashboard-card" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
       <div>
         <h3 style="margin-bottom: 6px;">Appointment Requests History</h3>
         <p style="color: var(--text-muted); font-size: 0.92rem; margin: 0;">View, edit, and resubmit your booking requests.</p>
@@ -167,9 +80,133 @@
       <a href="appointment-history.html" class="btn btn-solid">View My Requests</a>
     </div>
 
-    <div class="form-panel" style="margin-bottom: 30px;">
-      <h3 style="margin-bottom: 16px;">Activity History</h3>
-      <div id="activity-list"></div>
+    <div class="dashboard-card" style="margin-bottom: 20px;">
+      <h3>Email Communication History</h3>
+      <div id="email-history-list"><p class="admin-empty">Loading...</p></div>
+    </div>
+
+    <div class="dashboard-card" style="margin-bottom: 20px;">
+      <h3 class="dashboard-settings-toggle" id="settings-toggle">Account Settings &#9662;</h3>
+      <div class="dashboard-settings-body" id="settings-body">
+
+        <h4 style="margin: 10px 0 16px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Edit Profile</h4>
+        <form id="profile-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="p-full-name">Full Name</label>
+              <input type="text" id="p-full-name" name="fullName">
+            </div>
+            <div class="form-group">
+              <label>Username</label>
+              <input type="text" id="p-username" disabled>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="p-email" disabled>
+            </div>
+            <div class="form-group">
+              <label for="p-phone">Phone</label>
+              <input type="tel" id="p-phone" name="phone">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="p-dob">Date of Birth</label>
+              <input type="date" id="p-dob" name="dateOfBirth">
+            </div>
+            <div class="form-group">
+              <label for="p-gender">Gender (optional)</label>
+              <select id="p-gender" name="gender">
+                <option value="">Prefer not to say</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="nonbinary">Non-binary</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="p-bio">Bio / About Me</label>
+            <textarea id="p-bio" name="bio" rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="p-location">Location</label>
+              <input type="text" id="p-location" name="location">
+            </div>
+            <div class="form-group">
+              <label for="p-education">Education</label>
+              <input type="text" id="p-education" name="education">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="p-skills">Skills (comma-separated)</label>
+            <input type="text" id="p-skills" placeholder="e.g. Photography, Yoga, Baking">
+          </div>
+          <div class="form-group">
+            <label for="p-interests">Interests (comma-separated)</label>
+            <input type="text" id="p-interests" placeholder="e.g. Travel, Fashion, Music">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="p-instagram">Instagram</label>
+              <input type="text" id="p-instagram" placeholder="@username">
+            </div>
+            <div class="form-group">
+              <label for="p-website">Website</label>
+              <input type="text" id="p-website" placeholder="https://...">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-solid">Save Profile</button>
+          <div id="profile-status"></div>
+        </form>
+
+        <hr style="border-color: var(--border); margin: 30px 0;">
+
+        <h4 style="margin: 10px 0 16px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Privacy</h4>
+        <div class="form-group" style="display: flex; align-items: center; gap: 12px;">
+          <input type="checkbox" id="p-is-private" style="width: auto;">
+          <label for="p-is-private" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Make my profile private</label>
+        </div>
+        <div id="privacy-status"></div>
+
+        <hr style="border-color: var(--border); margin: 30px 0;">
+
+        <h4 style="margin: 10px 0 16px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Notification Preferences</h4>
+        <div class="form-group" style="display: flex; align-items: center; gap: 12px;">
+          <input type="checkbox" id="n-booking-reminders" style="width: auto;">
+          <label for="n-booking-reminders" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Email me booking reminders</label>
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 12px;">
+          <input type="checkbox" id="n-marketing" style="width: auto;">
+          <label for="n-marketing" style="margin-bottom: 0; text-transform: none; font-size: 0.95rem; color: var(--cream);">Email me promotions and news</label>
+        </div>
+        <button class="btn" id="save-notifications-btn">Save Preferences</button>
+        <div id="notifications-status"></div>
+
+        <hr style="border-color: var(--border); margin: 30px 0;">
+
+        <h4 style="margin: 10px 0 16px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Change Password</h4>
+        <form id="password-form">
+          <div class="form-group">
+            <label for="current-password">Current Password</label>
+            <input type="password" id="current-password" required>
+          </div>
+          <div class="form-group">
+            <label for="new-password">New Password</label>
+            <input type="password" id="new-password" minlength="8" required>
+          </div>
+          <button type="submit" class="btn btn-solid">Change Password</button>
+          <div id="password-status"></div>
+        </form>
+
+        <hr style="border-color: var(--border); margin: 30px 0;">
+
+        <h4 style="margin: 10px 0 16px; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Activity History</h4>
+        <div id="activity-list"></div>
+      </div>
     </div>
 
     <div style="text-align: center;">
