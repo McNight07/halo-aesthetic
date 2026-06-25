@@ -421,12 +421,14 @@ async function handleClients(req, res) {
     const rows = await sql(
       `
       select c.id, c.name, c.email, c.phone, c.loyalty_points, c.created_at,
+        u.id as user_id, u.photo_url as user_photo_url,
         count(b.id) as appointment_count,
         max(b.preferred_date) as last_visit
       from clients c
       left join bookings b on b.client_id = c.id
+      left join users u on u.email = c.email
       ${whereClause}
-      group by c.id
+      group by c.id, u.id, u.photo_url
       order by last_visit desc nulls last
       limit 300
       `,
@@ -459,7 +461,20 @@ async function handleClientDetail(req, res) {
     if (clientRows.length === 0) {
       return res.status(404).json({ error: 'Client not found' });
     }
-    return res.status(200).json({ client: clientRows[0], bookings: bookingRows });
+    const client = clientRows[0];
+
+    let user = null;
+    let emails = [];
+    if (client.email) {
+      const [userRows, emailRows] = await Promise.all([
+        sql`select id, full_name, username, email, phone, photo_url, bio, location, education, skills, interests, social_links, date_of_birth, created_at from users where email = ${client.email}`,
+        sql`select id, subject, body, status, created_at from client_emails where to_email = ${client.email} order by created_at desc limit 50`,
+      ]);
+      user = userRows[0] || null;
+      emails = emailRows;
+    }
+
+    return res.status(200).json({ client, bookings: bookingRows, user, emails });
   } catch (err) {
     console.error('admin client detail fetch failed', err);
     return res.status(500).json({ error: 'Could not load client.' });

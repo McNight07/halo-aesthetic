@@ -914,6 +914,19 @@ function setupAppointmentHistoryModal() {
 
 /* ---------- Clients ---------- */
 
+function clientInitials(name) {
+  if (!name) return "?";
+  return name.trim().split(/\s+/).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+}
+
+function clientAvatarHtml(name, photoUrl, size) {
+  const dim = size || 44;
+  if (photoUrl) {
+    return `<img src="${photoUrl}" alt="${escapeHtml(name || "Client")}" style="width:${dim}px;height:${dim}px;border-radius:50%;object-fit:cover;border:1.5px solid var(--gold-light);display:block;">`;
+  }
+  return `<span style="width:${dim}px;height:${dim}px;border-radius:50%;border:1.5px solid var(--gold-light);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:${dim / 2.6}px;color:var(--gold-light);flex-shrink:0;">${escapeHtml(clientInitials(name))}</span>`;
+}
+
 async function loadClients(search) {
   const list = document.getElementById("clients-list");
   try {
@@ -926,20 +939,23 @@ async function loadClients(search) {
     }
 
     list.innerHTML = data.clients.map((c) => `
-      <div class="admin-row-card" data-id="${c.id}">
-        <div class="admin-row-main">
-          <h4>${escapeHtml(c.name)}</h4>
-          <div class="admin-row-meta">
-            ${escapeHtml(c.email || "")} ${c.phone ? "· " + escapeHtml(c.phone) : ""}<br>
-            ${c.appointment_count} appointment${c.appointment_count === "1" ? "" : "s"}
-            ${c.last_visit ? ` · Last visit ${formatDate(c.last_visit)}` : ""}
+      <div class="admin-row-card">
+        <div class="admin-row-main admin-client-clickable" data-id="${c.id}" style="display: flex; align-items: center; gap: 14px; cursor: pointer;">
+          <span class="admin-client-avatar">${clientAvatarHtml(c.name, c.user_photo_url)}</span>
+          <div>
+            <h4 style="margin-bottom: 4px;">${escapeHtml(c.name)}</h4>
+            <div class="admin-row-meta">
+              ${escapeHtml(c.email || "")} ${c.phone ? "· " + escapeHtml(c.phone) : ""}<br>
+              ${c.appointment_count} appointment${c.appointment_count === "1" ? "" : "s"}
+              ${c.last_visit ? ` · Last visit ${formatDate(c.last_visit)}` : ""}
+            </div>
           </div>
         </div>
       </div>
     `).join("");
 
-    list.querySelectorAll(".admin-row-card").forEach((card) => {
-      card.addEventListener("click", () => openClientDetail(card.dataset.id));
+    list.querySelectorAll(".admin-client-clickable").forEach((el) => {
+      el.addEventListener("click", () => openClientDetail(el.dataset.id));
     });
   } catch (err) {
     list.innerHTML = '<p class="admin-empty">Could not load clients.</p>';
@@ -954,32 +970,72 @@ async function openClientDetail(id) {
   try {
     const data = await api(`client-detail?id=${id}`);
     const client = data.client;
+    const user = data.user;
+    const emails = data.emails || [];
+
+    const upcoming = data.bookings.filter((b) => ["pending", "confirmed"].includes(b.status));
+    const past = data.bookings.filter((b) => ["completed", "cancelled"].includes(b.status));
+
+    const bookingCard = (b) => `
+      <div class="admin-row-card" style="cursor: default;">
+        <div class="admin-row-main">
+          <h4>${escapeHtml(b.service)}</h4>
+          <div class="admin-row-meta">${formatDate(b.preferred_date)} at ${formatTime(b.preferred_time)}</div>
+        </div>
+        <span class="status-badge status-${b.status}">${b.status}</span>
+      </div>
+    `;
 
     panel.innerHTML = `
-      <h3 class="admin-panel-title">${escapeHtml(client.name)}</h3>
-      <div class="admin-row-meta" style="margin-bottom: 18px;">
-        ${escapeHtml(client.email || "")}<br>${escapeHtml(client.phone || "")}
+      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 18px;">
+        ${clientAvatarHtml(client.name, user && user.photo_url, 64)}
+        <div>
+          <h3 class="admin-panel-title" style="margin-bottom: 4px;">${escapeHtml(client.name)}</h3>
+          <div class="admin-row-meta">
+            ${escapeHtml(client.email || "")}${client.phone ? " · " + escapeHtml(client.phone) : ""}
+          </div>
+        </div>
       </div>
-      <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+
+      ${user ? `
+        <div class="admin-row-meta" style="margin-bottom: 18px;">
+          ${user.username ? `Username: ${escapeHtml(user.username)}<br>` : ""}
+          Registered account since ${formatDate(user.created_at)}
+          ${user.location ? `<br>Location: ${escapeHtml(user.location)}` : ""}
+          ${user.bio ? `<br>Bio: ${escapeHtml(user.bio)}` : ""}
+        </div>
+      ` : `
+        <p class="admin-row-meta" style="margin-bottom: 18px; font-style: italic;">No registered account linked to this client yet.</p>
+      `}
+
+      <div style="display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap;">
         <button class="btn" id="email-client-btn">E-Mail Client</button>
         <button class="btn" id="view-email-history-btn">View Email History</button>
       </div>
+
       <div class="form-group">
         <label>Treatment Notes</label>
         <textarea id="client-notes-input" rows="4">${escapeHtml(client.notes || "")}</textarea>
       </div>
       <button class="btn btn-solid" id="save-client-notes-btn">Save Notes</button>
       <div id="client-notes-status"></div>
-      <h4 style="margin: 26px 0 12px; font-size: 0.95rem; color: #b8b0a0; text-transform: uppercase; letter-spacing: 0.5px;">Booking History</h4>
-      ${data.bookings.length === 0
-        ? '<p class="admin-empty">No bookings yet.</p>'
-        : data.bookings.map((b) => `
+
+      <h4 style="margin: 26px 0 12px; font-size: 0.95rem; color: #b8b0a0; text-transform: uppercase; letter-spacing: 0.5px;">Upcoming Appointments</h4>
+      ${upcoming.length === 0 ? '<p class="admin-empty">No upcoming appointments.</p>' : upcoming.map(bookingCard).join("")}
+
+      <h4 style="margin: 26px 0 12px; font-size: 0.95rem; color: #b8b0a0; text-transform: uppercase; letter-spacing: 0.5px;">Appointment History</h4>
+      ${past.length === 0 ? '<p class="admin-empty">No past appointments yet.</p>' : past.map(bookingCard).join("")}
+
+      <h4 style="margin: 26px 0 12px; font-size: 0.95rem; color: #b8b0a0; text-transform: uppercase; letter-spacing: 0.5px;">Email Communication History</h4>
+      ${emails.length === 0
+        ? '<p class="admin-empty">No emails sent yet.</p>'
+        : emails.map((e) => `
             <div class="admin-row-card" style="cursor: default;">
               <div class="admin-row-main">
-                <h4>${escapeHtml(b.service)}</h4>
-                <div class="admin-row-meta">${formatDate(b.preferred_date)} at ${formatTime(b.preferred_time)}</div>
+                <h4>${escapeHtml(e.subject)}</h4>
+                <div class="admin-row-meta">${formatDateTime(e.created_at)}</div>
               </div>
-              <span class="status-badge status-${b.status}">${b.status}</span>
+              <span class="status-badge status-${e.status === "sent" ? "completed" : "cancelled"}">${e.status}</span>
             </div>
           `).join("")}
     `;
