@@ -276,7 +276,7 @@ async function sendMessageReplyEmail(message, replyText, attachment) {
 
   try {
     const resend = getResend();
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
       to: message.email,
       replyTo: REPLY_TO_ADDRESS,
@@ -284,6 +284,7 @@ async function sendMessageReplyEmail(message, replyText, attachment) {
       html,
       ...(attachment ? { attachments: [{ filename: attachment.filename, content: attachment.content }] } : {}),
     });
+    if (error) throw new Error(error.message || JSON.stringify(error));
   } catch (err) {
     console.error(`Failed to send reply email for message ${message.id}:`, err);
     throw err;

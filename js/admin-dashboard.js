@@ -1552,7 +1552,7 @@ function openMessageReplyModal(message) {
   document.getElementById("message-reply-modal").classList.add("open");
 }
 
-const MAX_REPLY_ATTACHMENT_BYTES = 3 * 1024 * 1024;
+const MAX_REPLY_ATTACHMENT_BYTES = 2.5 * 1024 * 1024;
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -1578,7 +1578,7 @@ function setupMessageReplyModal() {
       return;
     }
     if (file.size > MAX_REPLY_ATTACHMENT_BYTES) {
-      nameEl.textContent = "File too large (max 3MB)";
+      nameEl.textContent = "File too large (max 2.5MB)";
       fileInput.value = "";
       return;
     }
