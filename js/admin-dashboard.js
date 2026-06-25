@@ -78,6 +78,7 @@ function showApp() {
   refreshMessagesBadge();
   refreshFeedbackBadge();
   loadNotifications();
+  startLiveUpdates();
 }
 
 function setupLogin() {
@@ -115,8 +116,49 @@ function setupLogin() {
 
   document.getElementById("admin-logout-btn").addEventListener("click", async () => {
     await fetch("/api/admin/logout", { method: "POST" });
+    stopLiveUpdates();
     showLogin();
   });
+}
+
+/* ---------- Live updates (instant client request/message alerts) ---------- */
+
+let liveUpdatesTimer = null;
+let seenNotifIds = null;
+let currentSectionName = "dashboard";
+
+function startLiveUpdates() {
+  stopLiveUpdates();
+  liveUpdatesTimer = setInterval(checkForNewActivity, 5000);
+}
+
+function stopLiveUpdates() {
+  clearInterval(liveUpdatesTimer);
+  liveUpdatesTimer = null;
+  seenNotifIds = null;
+}
+
+async function checkForNewActivity() {
+  const items = await loadNotifications();
+  const keys = items.map((i) => `${i.kind}-${i.id}`);
+
+  if (seenNotifIds === null) {
+    // First run after login/page load: just record current state, don't toast for pre-existing items.
+    seenNotifIds = new Set(keys);
+    return;
+  }
+
+  const newItems = items.filter((i) => !seenNotifIds.has(`${i.kind}-${i.id}`));
+  seenNotifIds = new Set(keys);
+  if (newItems.length === 0) return;
+
+  newItems.forEach((item) => showToast(`New ${item.type.toLowerCase()}: ${item.text.slice(0, 60)}`));
+
+  if (currentSectionName === "messages") loadMessages();
+  if (currentSectionName === "reviews") loadReviews();
+  if (currentSectionName === "appointments") { loadAppointments(); loadWeeklyCalendar(); }
+  refreshMessagesBadge();
+  refreshFeedbackBadge();
 }
 
 /* ---------- Section switching ---------- */
@@ -134,6 +176,7 @@ function setupSidebar() {
 let appointmentsPollTimer = null;
 
 function loadSection(name) {
+  currentSectionName = name;
   document.querySelectorAll(".admin-section").forEach((s) => { s.style.display = "none"; });
   document.getElementById(`section-${name}`).style.display = "block";
 
@@ -1482,8 +1525,10 @@ async function loadNotifications() {
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     renderNotifList(items);
+    return items;
   } catch (err) {
     list.innerHTML = '<div class="notif-empty">Could not load notifications.</div>';
+    return [];
   }
 }
 
