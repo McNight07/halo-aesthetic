@@ -55,6 +55,9 @@ async function loadAccount() {
   document.getElementById("account-content").style.display = "block";
   document.getElementById("account-heading").textContent = `Welcome back, ${user.full_name.split(" ")[0]}`;
 
+  const verifyBanner = document.getElementById("verify-banner");
+  verifyBanner.style.display = user.email_verified ? "none" : "flex";
+
   renderDashboardAvatar(user);
   document.getElementById("d-full-name").textContent = user.full_name || "—";
   document.getElementById("d-email").textContent = user.email || "—";
@@ -231,6 +234,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const settingsBody = document.getElementById("settings-body");
   settingsToggle.addEventListener("click", () => {
     settingsBody.classList.toggle("open");
+  });
+
+  document.getElementById("resend-verification-btn").addEventListener("click", async (e) => {
+    const btn = e.target;
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+    try {
+      const response = await fetch("/api/auth/resend-verification", { method: "POST" });
+      const result = await response.json();
+      if (response.ok) {
+        showToast("Verification email sent");
+        btn.textContent = "Sent!";
+      } else {
+        showToast(result.error || "Could not resend email");
+        btn.disabled = false;
+        btn.textContent = "Resend Verification Email";
+      }
+    } catch (err) {
+      showToast("Could not resend email");
+      btn.disabled = false;
+      btn.textContent = "Resend Verification Email";
+    }
   });
 
   document.getElementById("photo-input").addEventListener("change", async (e) => {

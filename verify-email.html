@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Verify Email — Halo Aesthetic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <a href="index.html" class="logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="services.html">Services</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="booking.html" class="btn">Book Now</a></li>
+      <li><a href="login.html" id="account-nav-link" class="btn btn-outline-nav">Log In</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
+  </nav>
+</header>
+
+<section class="hero" style="min-height: 30vh;">
+  <div>
+    <div class="hero-eyebrow">Account Verification</div>
+    <h1>Verify Your Email</h1>
+  </div>
+</section>
+
+<section>
+  <div class="container" style="max-width: 460px; text-align: center;">
+    <div class="form-panel">
+      <p id="verify-status">Verifying your email...</p>
+      <a href="account.html" class="btn btn-solid" id="verify-action-link" style="display: none; margin-top: 10px;">Go to My Account</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">&copy; 2026 Halo Aesthetic. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="js/auth.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const status = document.getElementById("verify-status");
+    const actionLink = document.getElementById("verify-action-link");
+    const token = new URLSearchParams(window.location.search).get("token");
+
+    if (!token) {
+      status.textContent = "Missing verification token. Please use the link from your email.";
+      status.className = "error";
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        status.textContent = "Your email has been verified. Thank you!";
+        status.className = "success";
+        actionLink.style.display = "inline-block";
+      } else {
+        status.textContent = result.error || "This verification link is invalid or has expired.";
+        status.className = "error";
+      }
+    } catch (err) {
+      status.textContent = "Something went wrong. Please try again.";
+      status.className = "error";
+    }
+  });
+</script>
+<script src="js/cookie-consent.js"></script>
+<script src="js/nav.js"></script>
+</body>
+</html>

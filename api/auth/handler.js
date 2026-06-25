@@ -8,9 +8,13 @@ const {
   setSessionCookie,
   clearSessionCookie,
   getSessionTokenFromRequest,
+  getSessionUser,
   logActivity,
   sanitizeUser,
+  createEmailVerificationToken,
+  verifyEmailToken,
 } = require('../_db/auth');
+const { sendVerificationEmail } = require('../_db/email');
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_.]{3,30}$/;
 
@@ -54,6 +58,9 @@ async function handleSignup(req, res) {
     await sql`insert into notification_preferences (user_id) values (${user.id})`;
     await logActivity(user.id, 'signup');
 
+    const verificationToken = await createEmailVerificationToken(user.id);
+    await sendVerificationEmail(user, verificationToken);
+
     const token = await createSession(user.id);
     setSessionCookie(res, token);
 
@@ -96,6 +103,54 @@ async function handleLogin(req, res) {
   }
 }
 
+async function handleVerifyEmail(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { token } = req.body || {};
+  if (!token) {
+    return res.status(400).json({ error: 'Verification token is required' });
+  }
+
+  try {
+    const user = await verifyEmailToken(token);
+    if (!user) {
+      return res.status(400).json({ error: 'This verification link is invalid or has expired.' });
+    }
+    await logActivity(user.id, 'email_verified');
+    return res.status(200).json({ user: sanitizeUser(user) });
+  } catch (err) {
+    console.error('email verification failed', err);
+    return res.status(500).json({ error: 'Something went wrong verifying your email. Please try again.' });
+  }
+}
+
+async function handleResendVerification(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const user = await getSessionUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+  if (user.email_verified) {
+    return res.status(400).json({ error: 'Your email is already verified.' });
+  }
+
+  try {
+    const token = await createEmailVerificationToken(user.id);
+    await sendVerificationEmail(user, token);
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('resend verification failed', err);
+    return res.status(500).json({ error: 'Could not resend the verification email. Please try again.' });
+  }
+}
+
 async function handleLogout(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -114,6 +169,8 @@ module.exports = async (req, res) => {
   if (action === 'signup') return handleSignup(req, res);
   if (action === 'login') return handleLogin(req, res);
   if (action === 'logout') return handleLogout(req, res);
+  if (action === 'verify-email') return handleVerifyEmail(req, res);
+  if (action === 'resend-verification') return handleResendVerification(req, res);
 
   return res.status(404).json({ error: 'Not found' });
 };

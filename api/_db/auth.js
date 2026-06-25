@@ -73,6 +73,28 @@ function getSessionTokenFromRequest(req) {
   return parseCookies(req)[COOKIE_NAME];
 }
 
+const VERIFICATION_TTL_MS = 1000 * 60 * 60 * 24; // 24 hours
+
+async function createEmailVerificationToken(userId) {
+  const sql = getSql();
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + VERIFICATION_TTL_MS);
+  await sql`delete from email_verification_tokens where user_id = ${userId}`;
+  await sql`insert into email_verification_tokens (token, user_id, expires_at) values (${token}, ${userId}, ${expiresAt})`;
+  return token;
+}
+
+async function verifyEmailToken(token) {
+  const sql = getSql();
+  const rows = await sql`select * from email_verification_tokens where token = ${token} and expires_at > now()`;
+  if (rows.length === 0) return null;
+
+  const { user_id } = rows[0];
+  await sql`delete from email_verification_tokens where token = ${token}`;
+  const updated = await sql`update users set email_verified = true where id = ${user_id} returning *`;
+  return updated[0] || null;
+}
+
 async function logActivity(userId, action) {
   const sql = getSql();
   await sql`insert into activity_log (user_id, action) values (${userId}, ${action})`;
@@ -95,4 +117,6 @@ module.exports = {
   getSessionTokenFromRequest,
   logActivity,
   sanitizeUser,
+  createEmailVerificationToken,
+  verifyEmailToken,
 };

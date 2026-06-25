@@ -291,6 +291,39 @@ async function sendMessageReplyEmail(message, replyText, attachment) {
   }
 }
 
+async function sendVerificationEmail(user, token) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not set — skipping email send');
+    return;
+  }
+
+  const firstName = user.full_name.split(' ')[0];
+  const verifyUrl = `${SITE_URL}/verify-email.html?token=${token}`;
+  const html = baseLayout({
+    heading: `Verify your email, ${firstName}`,
+    intro: `Thanks for creating an account with Halo Aesthetic. Please confirm this is your email address to finish setting up your account.`,
+    details: `
+      <div style="text-align:center; margin:24px 0;">
+        <a href="${verifyUrl}" style="display:inline-block; background:#1c1a14; color:#f6f1e3; text-decoration:none; font-family:Georgia,serif; font-size:14px; letter-spacing:0.5px; padding:12px 28px; border-radius:999px;">Verify Email Address</a>
+      </div>
+    `,
+    footerNote: `This link expires in 24 hours. If you didn't create this account, you can safely ignore this email.`,
+  });
+
+  try {
+    const resend = getResend();
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: user.email,
+      replyTo: REPLY_TO_ADDRESS,
+      subject: 'Verify your email — Halo Aesthetic',
+      html,
+    });
+  } catch (err) {
+    console.error(`Failed to send verification email to user ${user.id}:`, err);
+  }
+}
+
 async function sendCustomClientEmail({ to, subject, bodyHtml }) {
   if (!process.env.RESEND_API_KEY) {
     throw new Error('RESEND_API_KEY is not set');
@@ -322,4 +355,5 @@ module.exports = {
   sendMessageReplyEmail,
   sendCustomClientEmail,
   sendAdminBookingModifiedEmail,
+  sendVerificationEmail,
 };
