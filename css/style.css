@@ -663,8 +663,21 @@ section { padding: 120px 0; scroll-margin-top: 90px; }
   font-size: 0.95rem;
 }
 
-.form-group select {
+select {
   color-scheme: dark;
+}
+
+select option {
+  background: var(--bg);
+  color: var(--cream);
+  padding: 10px 14px;
+}
+
+select option:hover,
+select option:checked,
+select option:focus {
+  background: var(--gold);
+  color: #1c1a14;
 }
 
 .form-group input:focus,
@@ -900,11 +913,24 @@ footer {
     color: #f3efe7;
     font-size: 1.1rem;
     letter-spacing: 1px;
-    padding-bottom: 8px;
     width: 100%;
+    display: block;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+    transition: background 0.2s, border-color 0.2s;
   }
 
-  .nav-links a.active::after { background: var(--gold); }
+  .nav-links a:hover,
+  .nav-links a:active,
+  .nav-links a.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #1c1a14;
+  }
+
+  .nav-links a.active::after { display: none; }
 
   .nav-links a.btn,
   .nav-links a.btn-outline-nav {
@@ -922,8 +948,7 @@ footer {
     color: #fff;
   }
 
-  .nav-links li { width: 100%; border-bottom: 1px solid #2a2620; padding-bottom: 14px; }
-  .nav-links li:has(a.btn), .nav-links li:has(a.btn-outline-nav) { border-bottom: none; padding-bottom: 0; }
+  .nav-links li { width: 100%; padding-bottom: 0; }
 
   .nav-close {
     display: flex;
