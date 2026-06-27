@@ -1,5 +1,25 @@
+const WELCOME_MODAL_SEEN_KEY = "halo_welcome_modal_seen";
+
+function setupWelcomeModal() {
+  const modal = document.getElementById("welcome-modal");
+  if (!modal) return;
+
+  if (!localStorage.getItem(WELCOME_MODAL_SEEN_KEY)) {
+    modal.classList.add("open");
+    localStorage.setItem(WELCOME_MODAL_SEEN_KEY, "true");
+  }
+
+  document.getElementById("welcome-modal-close").addEventListener("click", () => {
+    modal.classList.remove("open");
+  });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.remove("open");
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   loadGuestFeedback();
+  setupWelcomeModal();
 
   const bookingForm = document.getElementById("booking-form");
   if (bookingForm) {
@@ -168,8 +188,8 @@ const FALLBACK_SERVICES = [
   { category: "Threading", name: "Full Face Threading", duration: "30 mins", price_cents: 5500, description: "Complete facial hair removal for a smooth, polished look." },
   { category: "Threading", name: "Sideburns Threading", duration: "20 mins", price_cents: 3000, description: "Precise shaping and tidying of the sideburn area." },
   { category: "Threading", name: "Upper Lip Threading", duration: "15 mins", price_cents: 1000, description: "Fast, precise hair removal for the upper lip." },
+  { category: "Threading", name: "Henna Design", duration: "30 mins", price_cents: 2500, description: "Custom henna application for a beautiful temporary design." },
   { category: "Facial & Other", name: "Hydrating Glow Facial", duration: "30 mins", price_cents: 15000, description: "A nourishing facial treatment that leaves skin hydrated and glowing." },
-  { category: "Facial & Other", name: "Henna Design", duration: "30 mins", price_cents: 2500, description: "Custom henna application for a beautiful temporary design." },
   { category: "Bundle", name: "Brow & Lip Combo", duration: "per visit", price_cents: 4000, description: "Brow threading and upper lip threading together in one visit." },
   { category: "Bundle", name: "Smooth Legs & Bikini", duration: "per visit", price_cents: 8000, description: "Full legs wax and bikini line wax together in one visit." },
   { category: "Bundle", name: "Full Face Refresh", duration: "per visit", price_cents: 19000, description: "Full face threading paired with a hydrating glow facial." },
