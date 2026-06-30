@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Halo Aesthetic is an intimate, by-appointment sanctuary for waxing, threading, and facial artistry in Denver, CO, helmed by Sofia Zamani.">
-<title>Pricing — Halo Aesthetic</title>
+<title>Membership — Halo Aesthetic</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
@@ -14,11 +14,11 @@
 
 <header>
   <nav class="navbar">
-    <a href="index.html" class="logo"><img src="images/logo.svg" alt="Halo Aesthetic" class="logo-img"></a>
+    <a href="index.html" class="logo" style="font-family: var(--font-serif); font-weight: 600; font-size: 1.3rem; color: var(--cream); letter-spacing: 1px;">Halo Aesthetic</a>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="services.html">Services</a></li>
-      <li><a href="pricing.html" class="active">Pricing</a></li>
+      <li><a href="pricing.html" class="active">Membership</a></li>
       <li><a href="about.html">About</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a href="cart.html" class="cart-link" aria-label="View cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align: middle;"><circle cx="9" cy="20" r="1.3" fill="currentColor" stroke="none"/><circle cx="18" cy="20" r="1.3" fill="currentColor" stroke="none"/><path d="M2.5 3h2.2l2.6 12.6a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.95-1.55L20.8 8H6"/></svg> <span class="cart-badge">0</span></a></li>
@@ -32,67 +32,21 @@
   </nav>
 </header>
 
-<section class="hero" style="min-height: 40vh;">
-  <div>
-    <div class="hero-eyebrow">Bundles &amp; Membership</div>
-    <h1>Pricing</h1>
-    <p>Considered waxing, threading, and facial services at the Halo studio. See the full à la carte menu on <a href="services.html" style="text-decoration: underline;">Services</a>, or reserve instantly below.</p>
-  </div>
-</section>
-
-<section>
+<section class="bg-alt" style="padding: 40px 0;">
   <div class="container">
+    <h1 style="text-align: center; color: var(--gold-light); margin-bottom: 32px;">Membership</h1>
     <div class="grid-3">
-      <div class="price-card">
-        <h3>Brow &amp; Lip Combo</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Brow + upper lip threading</p>
-        <div class="price">$40<span>/visit</span></div>
-        <ul>
-          <li>Brow Threading</li>
-          <li>Upper Lip Threading</li>
-          <li>Save $5 vs. á la carte</li>
-        </ul>
-        <button class="btn btn-solid add-to-cart-btn" data-name="Brow &amp; Lip Combo" data-price-cents="4000">Add to Cart</button>
-      </div>
-      <div class="price-card featured">
-        <div class="badge">Most Popular</div>
-        <h3>Smooth Legs &amp; Bikini</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Full legs + bikini line wax</p>
-        <div class="price">$80<span>/visit</span></div>
-        <ul>
-          <li>Full Legs Wax</li>
-          <li>Bikini Line Wax</li>
-          <li>Save $10 vs. á la carte</li>
-        </ul>
-        <button class="btn btn-solid add-to-cart-btn" data-name="Smooth Legs &amp; Bikini" data-price-cents="8000">Add to Cart</button>
-      </div>
-      <div class="price-card">
-        <h3>Full Face Refresh</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">Face threading + glow facial</p>
-        <div class="price">$190<span>/visit</span></div>
-        <ul>
-          <li>Full Face Threading</li>
-          <li>Hydrating Glow Facial</li>
-          <li>Save $15 vs. á la carte</li>
-        </ul>
-        <button class="btn btn-solid add-to-cart-btn" data-name="Full Face Refresh" data-price-cents="19000">Add to Cart</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="bg-alt">
-  <div class="container">
-    <div class="section-header">
-      <div class="hero-eyebrow">Membership</div>
-      <h2>A Standing Ritual, Every Month</h2>
-      <div class="divider"></div>
-    </div>
-    <div class="grid-2">
       <div class="card">
         <h3>Brow Upkeep Membership</h3>
         <p>A standing monthly brow threading appointment, paired with 10% off all add-on services and priority booking windows.</p>
         <div class="price" style="margin-top: 18px;">$30<span style="font-size:0.9rem;"> /month</span></div>
+        <!-- Replace href below with your Stripe Payment Link for this subscription -->
+        <a href="https://buy.stripe.com/REPLACE_MEMBERSHIP" class="btn" target="_blank" rel="noopener" style="margin-top: 18px;">Subscribe</a>
+      </div>
+      <div class="card">
+        <h3>Brow &amp; Lip Combo Upkeep Membership</h3>
+        <p>Brow + upper lip threading, on a standing monthly appointment, paired with 10% off all add-on services and priority booking windows.</p>
+        <div class="price" style="margin-top: 18px;">$40<span style="font-size:0.9rem;"> /month</span></div>
         <!-- Replace href below with your Stripe Payment Link for this subscription -->
         <a href="https://buy.stripe.com/REPLACE_MEMBERSHIP" class="btn" target="_blank" rel="noopener" style="margin-top: 18px;">Subscribe</a>
       </div>
@@ -102,46 +56,12 @@
         <a href="contact.html" class="btn" style="margin-top: 18px;">Contact Us</a>
       </div>
     </div>
-    <p class="form-note" style="text-align: center; margin-top: 36px;">All appointments take place at the Halo studio in Denver, CO — the exact address is shared once your booking is confirmed.</p>
   </div>
 </section>
 
-<footer>
+<footer style="border-top: none; padding: 24px 0;">
   <div class="container">
-    <div class="footer-grid">
-      <div>
-        <h4>Halo Aesthetic</h4>
-        <p>Personalized waxing, threading &amp; facial artistry, by appointment only in Denver, CO.</p>
-      </div>
-      <div>
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="pricing.html">Pricing</a></li>
-          <li><a href="about.html">About Us</a></li>
-          <li><a href="booking.html">Book Now</a></li>
-          <li><a href="feedback.html">Feedback</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <ul>
-          <li><a href="admin.html">Admin</a></li>
-          <li><a href="https://www.google.com/maps/search/?api=1&query=800+North+Pearl+Street,+Denver,+CO+80203" target="_blank" rel="noopener">800 North Pearl Street, Denver, CO 80203</a></li>
-          <li>(303) 727-0746</li>
-          <li>haloaesthetic@hotmail.com</li>
-        </ul>
-      </div>
-      <div>
-        <h4>Policies</h4>
-        <ul>
-          <li><a href="terms.html">Terms &amp; Conditions</a></li>
-          <li><a href="privacy.html">Privacy Policy</a></li>
-          <li><a href="cookie-policy.html">Cookie Policy</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">&copy; 2026 Halo Aesthetic. All rights reserved.</div>
+    <div class="footer-bottom" style="border-top: none; padding-top: 0;">&copy; 2026 Halo Aesthetic. All rights reserved.</div>
   </div>
 </footer>
 

@@ -180,7 +180,6 @@ const FALLBACK_SERVICES = [
   { category: "Waxing", name: "Half Legs Wax", duration: "1 hr 30 mins", price_cents: 3500, description: "Hair removal from knee to ankle." },
   { category: "Waxing", name: "Stomach Wax", duration: "1 hr 30 mins", price_cents: 3000, description: "Gentle hair removal for the abdomen area." },
   { category: "Waxing", name: "Under Arm Wax", duration: "30 mins", price_cents: 2000, description: "Quick, thorough underarm hair removal." },
-  { category: "Waxing", name: "Underarms Wax", duration: "1 hr 30 mins", price_cents: 2000, description: "Thorough underarm hair removal with extra care for sensitive skin." },
   { category: "Threading", name: "Beard Line Threading", duration: "30 mins", price_cents: 3000, description: "Clean, sharp shaping along the beard line." },
   { category: "Threading", name: "Brow Threading", duration: "15 mins", price_cents: 3500, description: "Precision eyebrow shaping using traditional threading technique." },
   { category: "Threading", name: "Chin Threading", duration: "10 mins", price_cents: 1500, description: "Quick, precise hair removal for the chin area." },
@@ -188,7 +187,7 @@ const FALLBACK_SERVICES = [
   { category: "Threading", name: "Full Face Threading", duration: "30 mins", price_cents: 5500, description: "Complete facial hair removal for a smooth, polished look." },
   { category: "Threading", name: "Sideburns Threading", duration: "20 mins", price_cents: 3000, description: "Precise shaping and tidying of the sideburn area." },
   { category: "Threading", name: "Upper Lip Threading", duration: "15 mins", price_cents: 1000, description: "Fast, precise hair removal for the upper lip." },
-  { category: "Threading", name: "Henna Design", duration: "30 mins", price_cents: 2500, description: "Custom henna application for a beautiful temporary design." },
+  { category: "Henna", name: "Henna Design", duration: "30 mins", price_cents: 2500, description: "Custom henna application for a beautiful temporary design." },
   { category: "Facial & Other", name: "Hydrating Glow Facial", duration: "30 mins", price_cents: 15000, description: "A nourishing facial treatment that leaves skin hydrated and glowing." },
   { category: "Bundle", name: "Brow & Lip Combo", duration: "per visit", price_cents: 4000, description: "Brow threading and upper lip threading together in one visit." },
   { category: "Bundle", name: "Smooth Legs & Bikini", duration: "per visit", price_cents: 8000, description: "Full legs wax and bikini line wax together in one visit." },
@@ -313,9 +312,10 @@ async function loadServicesIntoSelect() {
 }
 
 const CATEGORY_CONTAINER_IDS = {
-  Waxing: "waxing-rows",
-  Threading: "threading-rows",
   "Facial & Other": "facial-rows",
+  Threading: "threading-rows",
+  Waxing: "waxing-rows",
+  Henna: "henna-rows",
 };
 
 function escapeHtml(str) {

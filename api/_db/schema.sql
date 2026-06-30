@@ -55,7 +55,6 @@ insert into services (category, name, duration, price_cents, display_order) valu
   ('Waxing', 'Half Legs Wax', '1 hr 30 mins', 3500, 7),
   ('Waxing', 'Stomach Wax', '1 hr 30 mins', 3000, 8),
   ('Waxing', 'Under Arm Wax', '30 mins', 2000, 9),
-  ('Waxing', 'Underarms Wax', '1 hr 30 mins', 2000, 10),
   ('Threading', 'Beard Line Threading', '30 mins', 3000, 11),
   ('Threading', 'Brow Threading', '15 mins', 3500, 12),
   ('Threading', 'Chin Threading', '10 mins', 1500, 13),
@@ -64,7 +63,7 @@ insert into services (category, name, duration, price_cents, display_order) valu
   ('Threading', 'Sideburns Threading', '20 mins', 3000, 16),
   ('Threading', 'Upper Lip Threading', '15 mins', 1000, 17),
   ('Facial & Other', 'Hydrating Glow Facial', '30 mins', 15000, 18),
-  ('Facial & Other', 'Henna Design', '30 mins', 2500, 19),
+  ('Henna', 'Henna Design', '30 mins', 2500, 19),
   ('Bundle', 'Brow & Lip Combo', 'per visit', 4000, 20),
   ('Bundle', 'Smooth Legs & Bikini', 'per visit', 8000, 21),
   ('Bundle', 'Full Face Refresh', 'per visit', 19000, 22)
@@ -97,6 +96,10 @@ update services set description = case name
   when 'Full Face Refresh' then 'Full face threading paired with a hydrating glow facial.'
 end
 where description is null;
+
+update services set category = 'Henna' where name = 'Henna Design';
+
+delete from services where name = 'Underarms Wax';
 
 -- Customer account system
 
